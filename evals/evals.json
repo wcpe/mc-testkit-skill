@@ -4,7 +4,7 @@
     {
       "id": 0,
       "name": "from-scratch-integration",
-      "prompt": "我有个 Paper 1.20.1 的插件项目 MyShop（商店插件，构建出 build/libs/MyShop.jar），现在想给它接上端到端测试，先能跑通一个最小的 smoke（验证真实服务端能起、插件能加载就行）。mc-testkit 在同机 D:\\Projects\\mc-testkit。帮我把接入要改的都弄好：settings、build.gradle.kts 的 mcTestkit{} 声明、template 怎么拷怎么改、依赖怎么注入、最后跑哪个命令。把要写的文件/片段都给我。",
+      "prompt": "我有个 Paper 1.20.1 的插件项目 MyShop（商店插件，构建出 build/libs/MyShop.jar），现在想给它接上端到端测试，先能跑通一个最小的 smoke（验证真实服务端能起、插件能加载就行）。mc-testkit 我已经 clone 到同机相邻目录（和我的项目并排放）。帮我把接入要改的都弄好：settings、build.gradle.kts 的 mcTestkit{} 声明、template 怎么拷怎么改、依赖怎么注入、最后跑哪个命令。把要写的文件/片段都给我。",
       "expected_output": "settings 声明插件来源；build.gradle.kts 应用插件 + mcTestkit{} backend(paper 1.20.1)+scenario(smoke)；dependencies{} pluginUnderTest 指 MyShop、桩 jar 作 plugin() 注入；拷 template 改包名/plugin.yml main/group/MC 版本；先构建桩 fat jar；跑 e2eSmoke 带 botDir。",
       "files": [],
       "expectations": [

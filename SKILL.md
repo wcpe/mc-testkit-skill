@@ -29,7 +29,7 @@ mc-testkit 是把「全平台 MC 插件 E2E 编排」沉淀成一处可复用工
 
 数据流：`mcTestkit{}` 声明 → 编排起后端(下发 `MC_TESTKIT_E2E_*` env) → 桩按场景驱动、必要时经聊天给 bot 发 `E2E_READY` → bot 操作 → 桩判定写 `<scenario>.properties` → 编排 verify 任务读该文件 → Gradle 成功/失败（CI 退出码）。
 
-> **mc-testkit 源码 / 模板在哪**：本技能场景下通常是 `D:\Projects\mc-testkit`（同机 sibling 项目），模板在其 `template/` 下、契约真源在 `docs/API.md`。若不在该路径，让用户给出其 mc-testkit checkout 路径，或从 maven 消费（模板仍需从该仓库 `template/` 拷）。**接入前务必读一眼 mc-testkit 当前 `README.md` / `CHANGELOG.md` 确认版本与能力**（撰写时 v0.3.0），不要照搬本技能里的版本号。
+> **mc-testkit 源码 / 模板在哪**：本技能场景下通常已 clone 到与消费方项目相邻的同机目录（sibling，如 `../mc-testkit`），模板在其 `template/` 下、契约真源在 `docs/API.md`。**实际路径问用户要——别假设具体盘符 / 目录**（不同机器各异）；或从 maven 消费（模板仍需从该仓库 `template/` 拷）。**接入前务必读一眼 mc-testkit 当前 `README.md` / `CHANGELOG.md` 确认版本与能力**（撰写时 v0.3.0），不要照搬本技能里的版本号。
 
 ## 三条铁律（先记住，违反必出隐性 bug）
 

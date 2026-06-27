@@ -72,7 +72,7 @@ mcTestkit {
 然后让编排把它和被测插件一起注入测试服 `plugins/`——`dependencies{}` 的每个值是**环境变量名或路径**（运行期解析，保证可移植）：
 
 ```bash
-export MC_TESTKIT_E2E_PLUGIN_UNDER_TEST_JAR=/abs/path/to/your-plugin.jar
+export MC_TESTKIT_E2E_PLUGIN_UNDER_TEST_JAR=$PWD/build/libs/your-plugin.jar   # 指向你的插件产物；用 $PWD/相对路径，别写死本机绝对路径
 export HARNESS_JAR=$PWD/e2e/harness/build/libs/mc-testkit-e2e-harness-1.0.0-SNAPSHOT.jar
 ```
 
