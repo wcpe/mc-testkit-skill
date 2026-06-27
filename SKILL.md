@@ -1,5 +1,5 @@
 ---
-name: mc-testkit-e2e
+name: mc-testkit-skill
 description: >-
   为 Minecraft(Bukkit/Paper/Folia) 插件项目对接 mc-testkit(top.wcpe.mc-testkit) 做端到端 / 集成测试时使用:
   用 mcTestkit { } DSL 声明真实「代理 + 后端」拓扑、照抄 template 脚手架(Kotlin 桩插件 harness + mineflayer 机器人),
