@@ -2,14 +2,14 @@
 
 把一个还没有 E2E 的消费方插件项目接上 mc-testkit，跑通第一个 smoke，再加业务场景。本文是「初次接入」的完整步骤；DSL/任务/env 的细节查 `dsl-tasks-and-env.md`，写场景查 `authoring-scenarios.md`。
 
-> **最佳真源**：mc-testkit 仓库的 `.github/workflows/e2e.yml` 是一份**能跑通的、最小的消费者接入实例**（自举：用 `template/` 的桩与 bot 真实下载 Paper+Waterfall 跑 smoke / 集群 / 压测）。接入遇到拿不准的接线，去读它，比任何文档都准。
+> **最佳真源**：mc-testkit 仓库的 `.github/workflows/e2e.yml` 是一份**能跑通的、最小的消费者接入实例**（自举：用 `template/` 的桩与 bot 真实下载后端 + 代理跑全矩阵）。v0.3.0 起它按 `-Pe2e.proxy`（waterfall/bungeecord/velocity）× `-Pe2e.backend`（paper/folia）+ `-Pe2e.backendVersion` **参数化平台**，同一套场景跑遍「代理 × 后端」——含单服(±bot) / 经代理 / 集群 / 压测 / 多 bot / 崩溃接管 / Folia。接入遇到拿不准的接线，去读它，比任何文档都准。
 
 ## 0. 前置条件
 
 - **JDK**：匹配后端 MC 版本所需的 Java（Paper 1.20.1 → JDK 17）。
 - **Node ≥ 18**：跑 mineflayer 机器人。
 - **网络（首次）**：编排内置模块首次会下载 Paper/Folia/代理 jar 并缓存复用；无网 / 弱网时用 `MC_TESTKIT_E2E_*_JAR` / `*_VERSION` 环境变量提供本地 jar（见 `dsl-tasks-and-env.md`）。
-- **依赖服务**：被测插件要的 MySQL/Redis 等，由你在跑之前起好（本地容器 / 实例），端口与凭据匹配其测试配置。真实后端含数据源初始化常需数十秒启动——机器人默认连接重试窗口已放到 180s。
+- **依赖服务**：被测插件要的 MySQL/Redis 等，由你在跑之前起好（本地容器 / 实例），端口与凭据匹配其测试配置。真实后端含数据源初始化常需数十秒启动——机器人默认连接重试窗口已放到 300s（`BOT_CONNECT_TIMEOUT_MS`）；集群/压测另有端口就绪门确定性等后端 + 代理端口可连再放 bot。
 
 ## 1. 声明插件仓库（消费方 `settings.gradle.kts`）
 
@@ -28,7 +28,7 @@ pluginManagement {
 
 ```kotlin
 plugins {
-    id("top.wcpe.mc-testkit") version "0.2.2"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
+    id("top.wcpe.mc-testkit") version "0.3.0"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
 }
 
 mcTestkit {
@@ -54,6 +54,7 @@ mcTestkit {
 1. **包名**：`com.example.e2e` → 你的包名；同步改 `src/main/resources/plugin.yml` 的 `main` 与 `build.gradle.kts` 的 `group`。
 2. **MC 版本**：`build.gradle.kts` 的 `paper-api:1.20.1-R0.1-SNAPSHOT` 与 `jvmToolchain(17)`、`plugin.yml` 的 `api-version: '1.20'` 改到你后端的 MC 版本。
 3. **读被测插件 API（可选）**：桩要调被测插件的 API 时，在 `plugin.yml` 加 `depend: [YourPlugin]`（控制加载顺序），在 `harness/build.gradle.kts` 加 `compileOnly("你的插件坐标")`。`-Xskip-metadata-version-check` 已就位，可引用「更新版 Kotlin 编译」的被测插件类。
+4. **Folia 后端（仅当你后端用 Folia）**：保留 `plugin.yml` 里的 `folia-supported: true`（否则 Folia 拒载桩）；桩骨架的调度已用反射做 Folia 兼容（`runSync`/`runLater` → `GlobalRegionScheduler`），**别删、别改回裸 `server.scheduler.runTask*`**。只跑 Paper 时这行无害（Paper 忽略它）。注意这只解决**桩**的 Folia 兼容；你的**被测插件**若要跑在 Folia 上，也得它自己支持 Folia。
 
 机器人 `bot/`：通常不用改内核，直接加场景文件（见 `authoring-scenarios.md`）。
 

@@ -47,6 +47,38 @@
         "给出正确的压测任务名 e2e<Key>Stress（如场景名 continuous-stress → e2eContinuousStressStress）",
         "没有臆造压测 API（如把规模塞进环境变量、虚构 stressTest{} 顶层块、或让 bot 自行判 PASS/FAIL）"
       ]
+    },
+    {
+      "id": 3,
+      "name": "velocity-proxy-capability-and-stress-limit",
+      "prompt": "我有个跨服经济插件 CrossBank。我之前看 mc-testkit 文档说支持 Velocity 但实际跑不通，现在升到新版了能用 Velocity 了吗？想测两件事：① 玩家经 Velocity 代理在 s1/s2 之间 /server 切，余额跨服一致（场景叫 bank-sync）；② 再加个压测，2 个 Paper 后端、每服 80 个 bot、持续 4 分钟狂转账，验证账实一致。两个后端都是 Paper 1.20.1。Velocity 这两件都能干吗？桩/bot/DSL 怎么写、各跑哪个任务？",
+      "expected_output": "bank-sync 用 backends(s1,s2)+via=velocity（v0.3.0 起 Velocity modern forwarding 已实装，单后端/集群/崩溃接管都能跑）→ e2eBankSyncCluster；压测不能经 Velocity（单端口不支持钉服，stress+via=velocity 配置期中文报错），改用 Waterfall/BungeeCord 或直连 → e2e<Key>Stress；同一 kebab id 三处一致；Velocity 用自有版本号、forwarding secret/离线放行由编排自动写；跨服一致与账实一致用查共享 DB 的真实断言。",
+      "files": [],
+      "expectations": [
+        "集群场景 bank-sync 用 backends(\"s1\",\"s2\") + via = \"velocity\"，并指出 v0.3.0 起 Velocity 已实装 modern forwarding、可用于集群 /server 切换（不再是声明支持却跑不通）",
+        "明确指出压测场景不能经 Velocity（stress + via = velocity 配置期中文报错，Velocity 单端口无法『一端口对一后端』钉服），压测改用 Waterfall/BungeeCord 或省略 via 直连后端端口",
+        "说明 Velocity 用自有版本号（VELOCITY_VERSION 缺省 3.3.0-SNAPSHOT，与后端 MC 版本无关），且消费方无需手动配 forwarding secret / 离线放行（编排自动写 velocity.toml + 后端 paper-global proxies.velocity）",
+        "同一个 kebab id bank-sync 三处一致：DSL 的 action/场景名、桩 ScenarioName 的 .id + dispatchScenario 分支、bot 的 scenarios 文件 + connectAndWait 的 scenarioRunner case",
+        "给出正确任务名：集群 e2eBankSyncCluster，压测按 <Key> 折法（场景名折 PascalCase + Stress 后缀）",
+        "桩侧跨服一致/账实一致用查共享 DB 的真实断言，而非到达标记 / 无条件 passScenario",
+        "没有臆造 DSL（不虚构 velocity 专属块、不把压测硬塞给 Velocity、不臆造任务名）"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "folia-backend-scheduling-and-manifest",
+      "prompt": "我的领地插件 RegionGuard 生产环境跑在 Folia 上，要给它做 E2E，后端用 Folia 1.20.1。加个机器人驱动的领地创建场景 claim-create：bot 进服跑命令圈一块地，桩验证领地真的写进了存储再判 PASS。Folia 上做桩有什么坑？plugin.yml、桩里的判定调度、跑哪个任务，都给我讲清楚。",
+      "expected_output": "backend platform=folia version 1.20.1；桩 plugin.yml 必须有 folia-supported: true 否则 Folia 拒载、桩不 onEnable；桩判定切主线程用模板的 runSync/runLater（反射走 GlobalRegionScheduler）而非裸 server.scheduler.runTask（Folia 抛 UnsupportedOperationException）；claim-create 三处一致；任务 e2eClaimCreateWithBot；判定查存储真实断言；提醒被测插件本身也要支持 Folia。",
+      "files": [],
+      "expectations": [
+        "backend 用 platform = folia、version = \"1.20.1\"（folia 平台便捷量直接用，无需 import）",
+        "桩 plugin.yml 必须声明 folia-supported: true，否则 Folia 拒绝加载桩（not marked as supporting Folia）、桩根本不 onEnable、永远等不到结果文件",
+        "桩里异步事件判定切主线程用模板的 Folia 兼容助手 runSync { } / runLater(ticks) { }，不直接用 server.scheduler.runTask*（Folia 上会抛 UnsupportedOperationException）",
+        "同一 kebab id claim-create 三处一致：DSL action/场景名、桩 ScenarioName.id + dispatchScenario 分支、bot scenarios 文件 + scenarioRunner case",
+        "给出正确任务名 e2eClaimCreateWithBot（按 <Key> 折法，claim-create → ClaimCreate）",
+        "判定来自查被测插件写入的存储 / 真实事件，而非无条件 passScenario",
+        "没有臆造 Folia 专有 DSL 字段或任务名，并提醒被测插件 RegionGuard 自身也需支持 Folia 才能在 Folia 后端加载"
+      ]
     }
   ]
 }

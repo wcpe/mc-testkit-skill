@@ -84,7 +84,7 @@ mcTestkit {
 }
 ```
 
-**校验（配置期，中文报错）**：节点重名、后端/代理名相撞、路由目标不存在、端口冲突、场景引用缺失、`count < 1`、多 bot 须各有唯一角色名、压测禁 `count`/多 bot、`botsPerServer`/`durationSeconds` ≤ 0。
+**校验（配置期，中文报错）**：节点重名、后端/代理名相撞、路由目标不存在、端口冲突、场景引用缺失、`count < 1`、多 bot 须各有唯一角色名、压测禁 `count`/多 bot、`botsPerServer`/`durationSeconds` ≤ 0、**压测经 Velocity**（`stress + via=velocity`，Velocity 单端口不支持钉服——压测改用 Waterfall/BungeeCord 或直连）。
 
 **多 bot 唯一性**：同质 `bot{count=N}` 展开成 `username-1..N` 唯一名；展开后的 key/username 与其它 bot 不能撞（如 `bot("w"){count=2}` 派生 `w-1`/`w-2` 与显式 `bot("w-1")` 会撞），撞了配置期报错。
 
@@ -142,10 +142,11 @@ mcTestkit {
 
 **代理**
 `WATERFALL_JAR`/`WATERFALL_VERSION`、`VELOCITY_JAR`/`VELOCITY_VERSION`、`BUNGEECORD_JAR`/`BUNGEECORD_VERSION`、`PROXY_PORT`、`PROXY_BASE_PORT`。
-> Waterfall 版本只认 **major.minor**（后端 `1.20.1` → `1.20`）；传完整补丁号会 404。
+> Waterfall 版本只认 **major.minor**（后端 `1.20.1` → `1.20`）；传完整补丁号会 404。Waterfall/BungeeCord 下载版本缺省取**后端版本**；**Velocity 用自有版本**（`VELOCITY_VERSION` 缺省 `3.3.0-SNAPSHOT`，与后端 MC 版本无关）。
+> **Velocity（v0.3.0 实装 modern forwarding）**：支持单后端经代理 / 集群 `/server` 切 / 崩溃接管 fallback；**不支持压测钉服**（单端口无法「一端口对一后端」），`stress + via=velocity` 配置期中文报错。`velocity.toml` + 后端 `paper-global proxies.velocity` + `forwarding.secret` + 放行离线机器人，编排全自动写，消费方只声明 `platform = velocity` + `routesTo(...)`。
 
 **机器人**
-`BOT_ACTION`（场景 action，内核据此分发）、`BOT_HOST`/`BOT_PORT`/`BOT_USERNAME`/`BOT_AUTH`/`BOT_VERSION`、`BOT_CONNECT_TIMEOUT_MS`(默认 180000)/`BOT_RETRY_DELAY_MS`(3000)/`BOT_READY_TIMEOUT_MS`(60000)。
+`BOT_ACTION`（场景 action，内核据此分发）、`BOT_HOST`/`BOT_PORT`/`BOT_USERNAME`/`BOT_AUTH`/`BOT_VERSION`、`BOT_CONNECT_TIMEOUT_MS`(默认 300000)/`BOT_RETRY_DELAY_MS`(3000)/`BOT_READY_TIMEOUT_MS`(60000)。
 > 经代理时 `BOT_VERSION` 由编排**自动固定为后端版本**（环境契约），别自己设。
 
 **集群 / 压测**
@@ -172,7 +173,7 @@ mcTestkit {
 | `E2E_DISCONNECT_NOW:<…>` | 桩→bot | 触发 bot 在购买中主动断线（中断恢复场景） |
 | `E2E_UI_TOKEN:<uuid>` | 桩→bot | 经插件消息 UI 通道驱动时下发会话 token |
 
-**场景特定标记**（template/消费方约定，**不进**冻结协议，可自定 / 替换）：如跨服示例里 bot 切到目标服后发的到达确认 `E2E_CLUSTER_ARRIVED`。真实跨服一致性判定由消费方桩按业务替换。
+**场景特定标记**（template/消费方约定，**不进**冻结协议，可自定 / 替换）：如跨服示例里 bot 切到目标服后发的到达确认 `E2E_CLUSTER_ARRIVED`；崩溃接管示例（FR-15）里 bot 令默认后端模拟宕机的 `E2E_TRIGGER_CRASH`（桩收到即 `Runtime.halt`）。真实跨服一致性 / 接管判定由消费方桩按业务替换。
 
 ---
 
