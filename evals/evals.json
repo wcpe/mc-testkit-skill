@@ -1,0 +1,52 @@
+{
+  "skill_name": "mc-testkit-e2e",
+  "evals": [
+    {
+      "id": 0,
+      "name": "from-scratch-integration",
+      "prompt": "我有个 Paper 1.20.1 的插件项目 MyShop（商店插件，构建出 build/libs/MyShop.jar），现在想给它接上端到端测试，先能跑通一个最小的 smoke（验证真实服务端能起、插件能加载就行）。mc-testkit 在同机 D:\\Projects\\mc-testkit。帮我把接入要改的都弄好：settings、build.gradle.kts 的 mcTestkit{} 声明、template 怎么拷怎么改、依赖怎么注入、最后跑哪个命令。把要写的文件/片段都给我。",
+      "expected_output": "settings 声明插件来源；build.gradle.kts 应用插件 + mcTestkit{} backend(paper 1.20.1)+scenario(smoke)；dependencies{} pluginUnderTest 指 MyShop、桩 jar 作 plugin() 注入；拷 template 改包名/plugin.yml main/group/MC 版本；先构建桩 fat jar；跑 e2eSmoke 带 botDir。",
+      "files": [],
+      "expectations": [
+        "settings.gradle.kts 声明了 mc-testkit 插件来源（pluginManagement 里 maven \"https://maven.wcpe.top/repository/maven-public/\"，或用 includeBuild 本地接入）",
+        "build.gradle.kts 应用了 id(\"top.wcpe.mc-testkit\") 且有 mcTestkit { } 块，内含 backend(platform = paper, version = \"1.20.1\") 与 scenario(\"smoke\")",
+        "dependencies{} 里 pluginUnderTest 指向 MyShop 的 jar，而把桩 harness jar 作为单独的 plugin(...) 注入（关键：没有把 harness 当成 pluginUnderTest）",
+        "说明桩 harness 是独立 Gradle 子工程，需先用 ./gradlew -p <harness 目录> jar 构建出 fat jar，且不把它加进根工程 settings.gradle.kts",
+        "说明拷贝 template/ 后要改：桩包名（com.example.e2e → 自己的）、plugin.yml 的 main、build.gradle.kts 的 group，以及 paper-api / api-version 对齐后端 MC 版本",
+        "给出运行命令 ./gradlew e2eSmoke 且带 -PmcTestkit.botDir=<bot 目录>",
+        "没有臆造不存在的 DSL 字段或任务名（如 testServer{}/e2eTest/runE2e 之类），DSL 块与任务名都与 mc-testkit 真实契约一致"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "cluster-cross-server",
+      "prompt": "我的背包同步插件 InvSync 要做跨服一致性测试：玩家在 s1 改了背包，经代理切到 s2，背包必须跟着过去、不能回档。两个 Paper 1.20.1 后端 + 一个 Waterfall 代理。用 mc-testkit 加个集群场景，场景叫 cross-server，告诉我桩(harness)、机器人(bot)、DSL 三处分别怎么写，最后跑哪个任务。",
+      "expected_output": "DSL backends(s1,s2)+via=wf+proxy(waterfall) routesTo 两后端；三处同一 kebab id；bot 读 CLUSTER_BACKENDS 经 /server 切、切后等 spawn；桩用 backendName 区分、真实一致性断言而非到达标记/无条件 PASS；任务 e2eCrossServerCluster；点明集群必经代理。",
+      "files": [],
+      "expectations": [
+        "DSL 里场景用 backends(\"s1\",\"s2\") 声明集群，并设 via=\"wf\" 经代理；明确指出集群必须经代理",
+        "声明了 waterfall 代理且 routesTo 两个后端；两后端为 paper 1.20.1",
+        "同一个 kebab id \"cross-server\" 在三处登记：DSL 的 action/场景名、桩 ScenarioName 的 .id + dispatchScenario 分支、bot 的 scenarios 文件 + connectAndWait 的 scenarioRunner case",
+        "bot 侧读取 MC_TESTKIT_E2E_CLUSTER_BACKENDS，经 /server <name> 切到后续后端，并在切服后等待再次 spawn",
+        "桩侧把模板示例的『到达标记 / 无条件 PASS』替换为真实跨服一致性判定（如在 s1 写入背包、切到 s2 查共享存储断言数据没回档），而不是无条件 passScenario",
+        "用 MC_TESTKIT_E2E_BACKEND_NAME（桩的 backendName）区分当前是哪个后端，体现 per-backend 身份",
+        "给出正确的集群任务名 e2eCrossServerCluster（而非 e2eCrossServer 或臆造名）"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "stress-no-oversell",
+      "prompt": "给商店插件 MyShop 加个压力测试：2 个 Paper 后端，每个服 100 个机器人，持续 5 分钟不停随机购买，最后要验证『不超卖』(卖出数不超过库存、且和各 bot 声称买到的对得上)。用 mc-testkit 怎么写桩和 bot？跑哪个任务？",
+      "expected_output": "DSL backends(2)+stress{botsPerServer=100;durationSeconds=300}，不用 count/多 bot；bot 播种 RNG 循环 + 发 E2E_STRESS_RESULT；桩 finalize 聚合 + 查 DB 断言不超卖（非无条件 PASS）；任务 e2e<Key>Stress。",
+      "files": [],
+      "expectations": [
+        "DSL 里场景用 stress { botsPerServer = 100; durationSeconds = 300 }（对应每服 100 bot、5 分钟），且声明 2 个 paper 后端",
+        "压测场景没有使用 bot { count = ... } 或多个具名 bot（规模只用 botsPerServer 表达）",
+        "bot 侧用 seed xor botIndex（MC_TESTKIT_E2E_BOT_INDEX / STRESS_RANDOM_SEED）播种确定性 RNG，在时长内循环施压，到时通过聊天发 E2E_STRESS_RESULT 上报摘要",
+        "桩侧每个 bot 入服都装备并发就绪信号，收集各 bot 的 E2E_STRESS_RESULT，在 duration 末 finalize 聚合，并查共享 DB 断言『不超卖』（非无条件 PASS），任一服结果缺失/FAIL 即整体失败",
+        "给出正确的压测任务名 e2e<Key>Stress（如场景名 continuous-stress → e2eContinuousStressStress）",
+        "没有臆造压测 API（如把规模塞进环境变量、虚构 stressTest{} 顶层块、或让 bot 自行判 PASS/FAIL）"
+      ]
+    }
+  ]
+}
