@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "mc-testkit": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/mc-testkit-mcp.mjs"]
+    }
+  }
+}

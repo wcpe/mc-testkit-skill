@@ -22,13 +22,13 @@ pluginManagement {
 }
 ```
 
-**本地联调更快的方式**：把 mc-testkit clone 到同机，用 `includeBuild("../mc-testkit")` 接入——改动即生效、无需发布。首个接入项目验证期就是这么做的。两者二选一。
+> ⛔ **必须走网络插件，禁用 `includeBuild`。** 本技能假定 mc-testkit 已发布到 maven（`maven.wcpe.top`），消费方**只经网络插件**接入——即上面 `pluginManagement` 的 maven 仓库 + 下方 `plugins { id("top.wcpe.mc-testkit") version "x.y.z" }`。**不要用 `includeBuild("../mc-testkit")`**：它要求本机有一份 mc-testkit 源码副本，在没有本地 clone 的机器（CI / 队友 / 经插件分发的环境）上根本不成立，还把版本钉死在一份易漂移的本地源码上。需要某个尚未发布的改动 → 先把 mc-testkit **发版 / 发快照到 maven**，再升消费方的 `version`，**绝不** `includeBuild`。
 
 ## 2. 应用插件、声明拓扑与场景（消费方 `build.gradle.kts`）
 
 ```kotlin
 plugins {
-    id("top.wcpe.mc-testkit") version "0.3.0"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
+    id("top.wcpe.mc-testkit") version "0.4.0"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
 }
 
 mcTestkit {
@@ -46,9 +46,20 @@ mcTestkit {
 
 > 平台便捷量 `paper`/`folia`/`velocity`/`waterfall`/`bungeecord` 直接可用，无需 import。
 
-## 3. 拷贝 `template/` 并改造（桩 + 机器人）
+## 3. 取并改造 `template/`（桩 + 机器人）
 
-把 mc-testkit 的整个 `template/` 目录拷进你的仓库（建议改名 `e2e/`），得到 `e2e/harness/`（Kotlin 桩）与 `e2e/bot/`（mineflayer 机器人）。它是**拷贝物不是依赖**：拷走后完全归你，自由分叉；编排插件运行期不依赖它。
+`template/` 是**拷贝脚手架、不在 maven 构件里**（编排插件运行期不依赖它），所以走网络插件接入时它**不随 maven 自动来**——单独从 mc-testkit 的 **GitHub 仓库**取（**别靠本机 mc-testkit 副本**，与禁 `includeBuild` 一致）：
+
+```bash
+# 只取 template/ 一个目录（浅克隆 + sparse-checkout）；版本对齐你用的 mc-testkit
+git clone --depth 1 --filter=blob:none --sparse https://github.com/wcpe/mc-testkit /tmp/mctk
+git -C /tmp/mctk sparse-checkout set template
+cp -r /tmp/mctk/template e2e        # 拷进你仓库、改名 e2e/；之后完全归你
+```
+
+> 经 **mc-testkit 的 Claude Code plugin** 接入时更省事：`/mc-testkit-init` 命令替你做上面这套 GitHub sparse-checkout，并**按你声明的 mc-testkit 版本 checkout 对应 tag**（保证模板与编排版本一致），再拷进 `e2e/`。
+
+拷得 `e2e/harness/`（Kotlin 桩）与 `e2e/bot/`（mineflayer 机器人）。它是**拷贝物不是依赖**：拷走后完全归你、自由分叉；编排插件运行期不依赖它。
 
 桩 `harness/` 要改的几处：
 1. **包名**：`com.example.e2e` → 你的包名；同步改 `src/main/resources/plugin.yml` 的 `main` 与 `build.gradle.kts` 的 `group`。
@@ -114,7 +125,7 @@ build/mc-testkit/
 
 ## 初次接入自检清单
 
-- [ ] settings 声明了插件仓库（或 `includeBuild`）。
+- [ ] settings 的 `pluginManagement` 声明了 maven 插件仓库（`maven.wcpe.top/.../maven-public`）、`build.gradle.kts` 经 `id("top.wcpe.mc-testkit") version "x.y.z"` 应用——**没有用 `includeBuild`**。
 - [ ] `build.gradle.kts` 应用插件、声明了 backend 与至少一个 scenario、`dependencies{}` 含被测插件 + 桩 jar。
 - [ ] 拷了 `template/`，改了桩包名 / `plugin.yml main` / `group` / MC 版本（paper-api + api-version 一致）。
 - [ ] 桩 jar 已 `./gradlew -p <harness> jar` 构建成功；`HARNESS_JAR` / 被测插件 jar 的 env 已导出。

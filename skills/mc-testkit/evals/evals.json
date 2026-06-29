@@ -1,14 +1,14 @@
 {
-  "skill_name": "mc-testkit-skill",
+  "skill_name": "mc-testkit",
   "evals": [
     {
       "id": 0,
       "name": "from-scratch-integration",
-      "prompt": "我有个 Paper 1.20.1 的插件项目 MyShop（商店插件，构建出 build/libs/MyShop.jar），现在想给它接上端到端测试，先能跑通一个最小的 smoke（验证真实服务端能起、插件能加载就行）。mc-testkit 我已经 clone 到同机相邻目录（和我的项目并排放）。帮我把接入要改的都弄好：settings、build.gradle.kts 的 mcTestkit{} 声明、template 怎么拷怎么改、依赖怎么注入、最后跑哪个命令。把要写的文件/片段都给我。",
+      "prompt": "我有个 Paper 1.20.1 的插件项目 MyShop（商店插件，构建出 build/libs/MyShop.jar），现在想给它接上端到端测试，先能跑通一个最小的 smoke（验证真实服务端能起、插件能加载就行）。我会从 maven 网络消费 mc-testkit（不用本地 includeBuild）。帮我把接入要改的都弄好：settings、build.gradle.kts 的 mcTestkit{} 声明、template 怎么拷怎么改、依赖怎么注入、最后跑哪个命令。把要写的文件/片段都给我。",
       "expected_output": "settings 声明插件来源；build.gradle.kts 应用插件 + mcTestkit{} backend(paper 1.20.1)+scenario(smoke)；dependencies{} pluginUnderTest 指 MyShop、桩 jar 作 plugin() 注入；拷 template 改包名/plugin.yml main/group/MC 版本；先构建桩 fat jar；跑 e2eSmoke 带 botDir。",
       "files": [],
       "expectations": [
-        "settings.gradle.kts 声明了 mc-testkit 插件来源（pluginManagement 里 maven \"https://maven.wcpe.top/repository/maven-public/\"，或用 includeBuild 本地接入）",
+        "settings.gradle.kts 经 pluginManagement 声明 maven 插件仓库 \"https://maven.wcpe.top/repository/maven-public/\" 走网络消费；不使用（且最好显式不建议）includeBuild 本地接入",
         "build.gradle.kts 应用了 id(\"top.wcpe.mc-testkit\") 且有 mcTestkit { } 块，内含 backend(platform = paper, version = \"1.20.1\") 与 scenario(\"smoke\")",
         "dependencies{} 里 pluginUnderTest 指向 MyShop 的 jar，而把桩 harness jar 作为单独的 plugin(...) 注入（关键：没有把 harness 当成 pluginUnderTest）",
         "说明桩 harness 是独立 Gradle 子工程，需先用 ./gradlew -p <harness 目录> jar 构建出 fat jar，且不把它加进根工程 settings.gradle.kts",
@@ -78,6 +78,20 @@
         "给出正确任务名 e2eClaimCreateWithBot（按 <Key> 折法，claim-create → ClaimCreate）",
         "判定来自查被测插件写入的存储 / 真实事件，而非无条件 passScenario",
         "没有臆造 Folia 专有 DSL 字段或任务名，并提醒被测插件 RegionGuard 自身也需支持 Folia 才能在 Folia 后端加载"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "serve-persistent-manual-testing",
+      "prompt": "我的插件 ShopGUI（Paper 1.20.1 商店插件，构建出 build/libs/ShopGUI.jar）已经接了 mc-testkit 跑自动化 e2e。现在我想要的不是自动判定——我想起一个真实服务端把插件装上、挂在那别停，让我自己用 MC 客户端连进去手点 GUI 看效果；最好再起个机器人在场陪我模拟另一个玩家。用 mc-testkit 怎么弄？DSL / 桩(harness) / bot 各要改什么？跑哪个任务、怎么停？",
+      "expected_output": "用 serve(\"dev\"){ backend=\"s1\"; 可选 bot } 顶层块（v0.4.0 第 5 个块，非 scenario）→ serveDev 起服挂住、stopDevServe 或 Ctrl+C 停；serve 不判定、不自动收尾；桩须 re-sync v0.4.0 模板带 ScenarioName.SERVE 空闲分支（否则把哨兵当 smoke 跑、几秒自停），serve 不需写 dispatch/判定；陪玩 bot 须自驱（连上即动作，不等 E2E_READY）。",
+      "files": [],
+      "expectations": [
+        "用 serve(\"...\") 顶层块声明（不是 scenario），含 backend=（或集群 backends(...)+via）；指出 serve 是 v0.4.0 新增的第 5 个顶层块、与自动化 e2e 是两条不同的命（serve 不判定）",
+        "给出正确任务名：serveDev（serve 名折 PascalCase）起服挂住、stopDevServe 停 / 收尾；明确 serve 前台阻塞挂住到手动停（Ctrl+C 或 stopDevServe），不自动判定 PASS/FAIL、不自动收尾",
+        "桩侧：指出桩需 re-sync 到 v0.4.0 模板、带 ScenarioName.SERVE(\"__mc_testkit_serve__\") 空闲分支（不驱动 / 不判定 / 不关服），否则老桩把 serve 哨兵当默认 smoke 跑、写结果后几秒 Bukkit.shutdown 自停；并说明 serve 不需要在桩里加 dispatchScenario 分支或判定逻辑",
+        "人机混场 bot：指出 serve 桩空闲、不发 E2E_READY，所以陪玩 bot 必须『自驱』（spawn 后即自行走动 / 操作），不能复用『await E2E_READY 再动』的自动化场景 action（否则干等到超时）",
+        "没有臆造 DSL 或任务名（不虚构 serveMode{} / testServer{} / runServer / e2eServe 之类；serve 块 + serveDev / stopDevServe 与 mc-testkit 真实契约一致）"
       ]
     }
   ]

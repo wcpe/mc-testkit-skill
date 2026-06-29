@@ -1,0 +1,9 @@
+{
+  "name": "mc-testkit",
+  "version": "0.4.0",
+  "description": "给 Minecraft(Bukkit/Paper/Folia) 插件项目对接 mc-testkit：mcTestkit{} DSL 声明真实代理+后端拓扑、template 脚手架、真实机器人驱动 E2E（冒烟/经代理/集群/压测），以及 serve 持久手测（起服挂住供真人客户端连入）。捆绑技能 + 斜杠命令(/mc-testkit-init|serve|scenario) + 冻结契约护栏 hook + 只读 MCP server。只走 maven 网络插件、禁用 includeBuild。",
+  "author": { "name": "WCPE", "url": "https://github.com/wcpe" },
+  "homepage": "https://github.com/wcpe/mc-testkit",
+  "license": "MIT",
+  "keywords": ["minecraft", "bukkit", "paper", "folia", "e2e", "integration-test", "gradle", "mc-testkit", "mineflayer"]
+}

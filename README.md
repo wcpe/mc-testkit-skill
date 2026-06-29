@@ -1,80 +1,79 @@
-# mc-testkit-skill — Claude Code Agent Skill
+# mc-testkit — Claude Code Plugin
 
-一个 **Claude Code 技能（Agent Skill）**，教 Claude 给 **Minecraft（Bukkit / Paper / Folia）插件项目**对接 [mc-testkit](https://github.com/wcpe/mc-testkit)（`top.wcpe.mc-testkit`）做端到端 / 集成测试：用 `mcTestkit { }` DSL 声明真实「代理 + 后端」拓扑，照抄模板脚手架（Kotlin 桩插件 harness + mineflayer 机器人），用**真实机器人入服**驱动场景，跑简单冒烟 / 经代理 / 跨服集群 / N 服 × M bot 压测，以**结果文件**判 PASS/FAIL。
+一个 **Claude Code 插件**，教并帮 Claude 给 **Minecraft（Bukkit / Paper / Folia）插件项目**对接 [mc-testkit](https://github.com/wcpe/mc-testkit)（`top.wcpe.mc-testkit`）：用 `mcTestkit { }` DSL 声明真实「代理 + 后端」拓扑、照抄模板脚手架（Kotlin 桩 harness + mineflayer 机器人）、用**真实机器人入服**驱动场景跑 E2E（冒烟 / 经代理 / 跨服集群 / N 服 × M bot 压测）以**结果文件**判 PASS/FAIL；或用 **serve 持久手测**起服挂住供真人客户端连入手动测试。
 
-> **对接项目**：[wcpe/mc-testkit](https://github.com/wcpe/mc-testkit) —— Gradle 编排插件 + 配套脚手架模板（坐标 `top.wcpe.mc-testkit`，发布到 [maven.wcpe.top](https://maven.wcpe.top)）。本技能随它的版本演进，撰写时对齐其 **v0.3.0**。
->
-> 本仓库是**技能本体**（给 Claude 读的指令与参考文档），不是 mc-testkit 工具本身，也不是某个被测插件。技能不替你写业务断言，但保证接线对、契约不踩坑、任务跑得起来。
+> **对接项目**：[wcpe/mc-testkit](https://github.com/wcpe/mc-testkit)（Gradle 编排插件 + 脚手架模板，发布到 [maven.wcpe.top](https://maven.wcpe.top)）。本插件随它演进，撰写时对齐 **v0.4.0**。本仓库是**插件本体**（给 Claude 的指令 / 命令 / 护栏 / 工具），不是 mc-testkit 工具本身，也不是被测插件。
 
-## 这个技能解决什么
+## 这个插件装了什么（4 类组件）
 
-每个 MC 插件项目想做真机 E2E 时都会重复踩同一批坑：机器人协议版本要跟后端对齐、代理版本号解析、集群必须经代理、运行期进程按 pid 收尾、依赖服务（MySQL/Redis）先就绪……mc-testkit 把这些固化进一个 Gradle 编排插件，本技能则教 Claude **正确消费**它——而不是每个项目手搓一套一次性的、容易「永远绿但什么都没验证」的假测试。
+| 组件 | 路径 | 作用 |
+|---|---|---|
+| **技能 Skill** | `skills/mc-testkit/` | 中枢知识：心智模型、三条铁律、阶段路由、DSL/任务/env 契约、写场景配方、排障表。命中触发场景时 Claude 自动读。 |
+| **斜杠命令 Commands** | `commands/` | `/mc-testkit-init`（从零接入跑通 smoke）、`/mc-testkit-serve`（配 serve 持久手测）、`/mc-testkit-scenario <id>`（三处一致登记场景）。把技能里反复教的流程变成一键。 |
+| **护栏 Hook** | `hooks/` | `PostToolUse` 在你编辑时拦截 `includeBuild("../mc-testkit")`（本插件强制走 maven 网络插件），并在改桩/bot 时提醒别改冻结契约名。 |
+| **MCP Server** | `mcp/` + `.mcp.json` | 只读工具 `mc_testkit_read_result` / `mc_testkit_list_tasks`（零依赖 Node）。本地 gradle Claude 也能经 Bash 跑，这个是「把 mc-testkit 操作做成一等工具」的可选演示。 |
 
-## 心智模型：三层协作
+> 技能负责「怎么想」、命令负责「一键做对」、hook 负责「别踩红线」、MCP 负责「直接读结果 / 列任务」——装一个插件全有。
+
+## 心智模型：三层协作 + 两条命
 
 ```
-① Gradle 编排插件  top.wcpe.mc-testkit （消费方 plugins{} 应用）
-     └─ mcTestkit { } DSL 声明拓扑/场景/依赖 → 自动注册 e2e* 任务
-     └─ 下载并拉起 Paper/Folia 后端 + Velocity/Waterfall/BungeeCord 代理
-     └─ 下发 env、跑完读「结果文件」判 PASS/FAIL、按 pid 收尾
-② 服务端桩插件 harness（Kotlin，照抄 template/harness 改）
-     └─ 入服装备玩家、按场景驱动、与 bot 收发控制消息、写结果文件（唯一裁判）
-③ mineflayer 机器人 bot（Node，照抄 template/bot 改）
-     └─ 模拟真实玩家入服、按 action 驱动场景，「像玩家一样操作」（不判定）
+① Gradle 编排插件 top.wcpe.mc-testkit（消费方 plugins{} 经 maven 应用）
+     └─ mcTestkit { } DSL 声明拓扑/场景/serve/依赖 → 数据驱动注册 e2e* / serve* 任务
+     └─ 下载并拉起 Paper/Folia 后端 + Velocity/Waterfall/BungeeCord 代理、按 pid 收尾
+② 服务端桩 harness（Kotlin，照抄 template/harness）：入服驱动场景、写结果文件（PASS/FAIL 唯一裁判）
+③ mineflayer 机器人 bot（Node，照抄 template/bot）：模拟真实玩家「像玩家一样操作」（不判定）
 ```
+- **自动化 E2E**：bot 驱动 → 桩判定 → 跑完拆台（给 CI）。
+- **serve 持久手测**（v0.4.0）：起拓扑挂住供真人连入手测，不判定、手动停时干净收尾。
 
 ## 三条铁律（违反必出隐性 bug）
 
-1. **一个 kebab-case id，必须在「DSL / 桩 / bot」三处完全一致**，否则桩匹配不上场景、或 bot 落到默认分支静默 no-op。
-2. **判 PASS/FAIL 永远是「桩」的职责，verify 只认结果文件**；模板里的无条件 PASS 占位**必须**替换成真实判定，否则得到假测试。
-3. **冻结契约的名字一律不改**：env 前缀 `MC_TESTKIT_E2E_`、控制消息（`E2E_READY` 等）、结果文件键（`status` / `message`）——改了三方就对不上。
+1. **一个 kebab-case id 必须在「DSL / 桩 / bot」三处完全一致**（serve 例外：桩空闲、不需登记场景）。
+2. **判 PASS/FAIL 永远是「桩」的职责，verify 只认结果文件**；模板的无条件 PASS 占位**必须**替换成真实判定。
+3. **冻结契约名一律不改**：`MC_TESTKIT_E2E_` 前缀、控制消息（`E2E_READY` 等）、结果键（`status`/`message`）、serve 哨兵 `__mc_testkit_serve__`。
 
-## 仓库结构
+## 安装（经市场）
 
-| 路径 | 作用 |
-|---|---|
-| [`SKILL.md`](SKILL.md) | 技能中枢：心智模型、三条铁律、阶段路由、拓扑→任务表、环境坑速查、完成判据。Claude 触发技能时首先读它。 |
-| [`references/scaffolding-and-integration.md`](references/scaffolding-and-integration.md) | **从零接入**：声明仓库、应用插件、拷 `template/` 改包名、harness/bot 构建接线、依赖注入、跑通第一个 smoke。 |
-| [`references/dsl-tasks-and-env.md`](references/dsl-tasks-and-env.md) | **契约速查**：`mcTestkit { }` DSL 完整文法、生成任务名全集与 `<Key>` 折法、`MC_TESTKIT_E2E_*` 环境变量目录、控制协议、结果文件键。 |
-| [`references/authoring-scenarios.md`](references/authoring-scenarios.md) | **写场景**：三处登记配方 + 桩侧 + bot 侧，简单 → 集群 → 压测 → 多 bot 全覆盖。 |
-| [`references/troubleshooting.md`](references/troubleshooting.md) | **排障**：按症状的失败定位表与核对清单。 |
-| [`evals/evals.json`](evals/evals.json) | 触发与质量评测用例（从零接入 / 跨服集群 / 压测不超卖 / 经 Velocity 代理 / Folia 后端，5 例）。 |
-
-参考文档按需读，不必一次全读——SKILL.md 会按用户所处阶段路由到对应文件。
-
-## 安装
-
-这是标准的 Claude Code Agent Skill，把整个目录放到技能搜索路径下即可（结构：`<skill>/SKILL.md` + `references/`）：
+本仓库既是插件、也是一个单插件市场。用户：
 
 ```
-~/.claude/skills/mc-testkit-skill/        # 用户级，对所有项目可见
-# 或
-<你的项目>/.claude/skills/mc-testkit-skill/   # 项目级，随仓库分发
+/plugin marketplace add wcpe/mc-testkit-skill      # 加这个 GitHub 仓库为市场
+/plugin install mc-testkit@wcpe                     # 安装插件
 ```
 
-放好后无需手动加载——当用户的请求命中 `SKILL.md` 头部 `description` 里的触发场景（给插件加 e2e、接 mc-testkit、用真实机器人测插件、跨服一致性、压测、e2e 跑不过排障等），Claude 会自动调用本技能。
+**团队自动分发**：在你**消费方仓库**的 `.claude/settings.json` 里声明，clone 仓库的人自动获得本插件、无需各自安装：
+
+```jsonc
+{
+  "extraKnownMarketplaces": {
+    "wcpe": { "source": { "source": "github", "repo": "wcpe/mc-testkit-skill" } }
+  },
+  "enabledPlugins": { "mc-testkit@wcpe": true }
+}
+```
+
+> 字段名以你当前 Claude Code 的 `/plugin` 文档为准（插件机制在演进）；本仓库结构（`skills/` + `commands/` + `hooks/hooks.json` + `.mcp.json` + `.claude-plugin/`）按约定被自动发现。
 
 ## 使用
 
-在装有本技能的会话里，直接用自然语言描述需求即可，例如：
+装好后直接自然语言描述，或用命令：
 
-- 「给我的 Paper 1.20.1 商店插件接上 e2e，先跑通一个最小 smoke。」
-- 「背包同步插件要做跨服一致性测试：玩家在 s1 改背包，切到 s2 不能回档。」
-- 「给商店插件加压测：2 个后端、每服 100 bot、持续 5 分钟，验证不超卖。」
-- 「e2e 跑不过 / bot 连不上 / 结果一直 FAIL，帮我排障。」
-
-Claude 会判断你处在哪个阶段、读对应参考文档，再产出可跑起来的接线与场景代码。
+- 「给我的 Paper 1.20.1 商店插件接上 e2e，跑通最小 smoke。」 或 `/mc-testkit-init 1.20.1`
+- 「起个真实服务端挂着让我自己连进去手点 GUI，再来个 bot 陪测。」 或 `/mc-testkit-serve dev`
+- 「加个跨服一致性场景 inv-sync。」 或 `/mc-testkit-scenario inv-sync`
+- 「e2e 跑不过 / bot 连不上 / serve 几秒自停，帮我排障。」（技能 `troubleshooting.md` 直接路由）
 
 ## 依赖与前置
 
-- 消费方是一个 **Bukkit/Paper/Folia 插件 Gradle 项目**（Kotlin DSL）。
-- **JDK** 匹配后端 MC 版本（如 Paper 1.20.1 → JDK 17）、**Node ≥ 18**（跑 mineflayer）。
-- 被测插件所需的 **MySQL/Redis 等依赖服务**由消费方在跑测前自行起好。
-- **mc-testkit 工具本身**（上游：[github.com/wcpe/mc-testkit](https://github.com/wcpe/mc-testkit)）：通常 clone 到与消费方项目相邻的同机目录（sibling，如 `../mc-testkit`，实际路径因机而异），模板在其 `template/`、契约真源在 `docs/API.md`；或从 `https://maven.wcpe.top/repository/maven-public/` 消费。接入前请读一眼 mc-testkit 当前 `README.md` / `CHANGELOG.md` 确认版本与能力（本技能撰写时为 v0.3.0），不要照搬文档里的版本号。
+- 消费方是 **Bukkit/Paper/Folia 插件 Gradle 项目**（Kotlin DSL）。
+- **JDK** 匹配后端 MC 版本（Paper 1.20.1 → JDK 17）、**Node ≥ 18**（mineflayer + 本插件 hook/MCP）。
+- 被测插件要的 **MySQL/Redis 等**由消费方先起好。
+- **mc-testkit 工具本身**：**只经网络从 maven 消费**（`maven.wcpe.top/.../maven-public` + `id("top.wcpe.mc-testkit") version "x.y.z"`）；⛔ **禁用 `includeBuild("../mc-testkit")`**（hook 会拦）。`template/` 不在 maven 构件里——`/mc-testkit-init` 替你从 GitHub 按版本取。契约真源 GitHub `docs/API.md`。
 
 ## 评测
 
-[`evals/evals.json`](evals/evals.json) 含 5 个用例，覆盖技能的核心契约：从零接入的最小 smoke、跨服集群一致性、压测不超卖、经 Velocity 代理（含其压测限制）、Folia 后端（`folia-supported` + Folia 兼容调度）。每例都校验产出是否符合 mc-testkit 真实契约（DSL 字段 / 任务名不臆造、三处 id 一致、判定不靠无条件 PASS）。可配合 `skill-creator` 技能的评测工具运行。
+[`skills/mc-testkit/evals/evals.json`](skills/mc-testkit/evals/evals.json) 含 6 个用例（从零接入 / 跨服集群 / 压测不超卖 / 经 Velocity 代理 / Folia 后端 / serve 持久手测），校验产出符合 mc-testkit 真实契约（DSL/任务名不臆造、三处 id 一致、判定不靠无条件 PASS、不用 includeBuild）。可配合 `skill-creator` 评测工具运行。
 
 ## 许可
 

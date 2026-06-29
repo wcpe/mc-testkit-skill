@@ -1,0 +1,17 @@
+{
+  "name": "wcpe",
+  "owner": { "name": "WCPE", "url": "https://github.com/wcpe" },
+  "metadata": {
+    "description": "WCPE 的 Claude Code 插件市场",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "mc-testkit",
+      "source": "./",
+      "description": "mc-testkit E2E 编排 + serve 持久手测对接（技能 + 命令 + 护栏 hook + MCP）。只走 maven 网络插件、禁用 includeBuild。",
+      "version": "0.4.0",
+      "keywords": ["minecraft", "e2e", "testing", "gradle"]
+    }
+  ]
+}
