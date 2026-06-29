@@ -33,13 +33,13 @@
 2. **判 PASS/FAIL 永远是「桩」的职责，verify 只认结果文件**；模板的无条件 PASS 占位**必须**替换成真实判定。
 3. **冻结契约名一律不改**：`MC_TESTKIT_E2E_` 前缀、控制消息（`E2E_READY` 等）、结果键（`status`/`message`）、serve 哨兵 `__mc_testkit_serve__`。
 
-## 安装（经市场）
+## 安装（经 wcpe 组织市场）
 
-本仓库既是插件、也是一个单插件市场。用户：
+本仓库是 **mc-testkit 插件本体**；分发经 **wcpe 组织市场**（[wcpe/claude-plugins](https://github.com/wcpe/claude-plugins)，索引 WCPE 各插件）。用户：
 
 ```
-/plugin marketplace add wcpe/mc-testkit-skill      # 加这个 GitHub 仓库为市场
-/plugin install mc-testkit@wcpe                     # 安装插件
+/plugin marketplace add wcpe/claude-plugins        # 加 wcpe 组织市场（一次；含本插件 + sdd-skills 等）
+/plugin install mc-testkit@wcpe                     # 安装 mc-testkit 插件
 ```
 
 **团队自动分发**：在你**消费方仓库**的 `.claude/settings.json` 里声明，clone 仓库的人自动获得本插件、无需各自安装：
@@ -47,7 +47,7 @@
 ```jsonc
 {
   "extraKnownMarketplaces": {
-    "wcpe": { "source": { "source": "github", "repo": "wcpe/mc-testkit-skill" } }
+    "wcpe": { "source": { "source": "github", "repo": "wcpe/claude-plugins" } }
   },
   "enabledPlugins": { "mc-testkit@wcpe": true }
 }
