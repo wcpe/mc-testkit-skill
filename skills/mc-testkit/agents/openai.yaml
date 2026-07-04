@@ -1,0 +1,14 @@
+# Codex 技能列表展示名称。
+interface:
+  # 展示给用户的技能名。
+  display_name: "mc-testkit"
+  # 技能列表里的简短说明。
+  short_description: "Minecraft 插件 E2E 接入与排障"
+  # 插入会话时的默认提示。
+  default_prompt: "Use $mc-testkit to add or debug mc-testkit E2E testing for this Minecraft plugin."
+  # 技能卡片强调色。
+  brand_color: "#2F855A"
+# 允许自然语言命中此技能。
+policy:
+  # 用户没显式点名时，也允许 Codex 按描述自动使用。
+  allow_implicit_invocation: true

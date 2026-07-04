@@ -230,7 +230,7 @@ serve("mixed")   { backend = "s1"; bot { username = "Filler"; action = "idle-wal
 跑 `./gradlew serveDev`（起服后打印连接信息并**挂住**；Ctrl+C 或另跑 `./gradlew stopDevServe` 停）。
 
 **② 桩（harness）——只需「认得哨兵、进入空闲」，不写场景逻辑。**
-模板 v0.4.0 已带 `ScenarioName.SERVE("__mc_testkit_serve__")` + `bootstrapScenario` 的空闲分支（不驱动 / 不挂超时 / 不写结果 / 不关服）+ `onPlayerJoin` 对 SERVE 直接 `return`（不动真人玩家背包）。**你要做的就是确保桩 re-sync 到带这个分支的新模板。** 没有它：serve 下桩会把未知哨兵当默认 `smoke` 跑、写结果、几秒后 `Bukkit.shutdown()` 把服务端关掉（症状＝「serve 起来几秒就自己停了」）；或更老的桩抛「未知场景」被禁用、服务端仍挂着但少了「干净空闲」。serve **不需要**你在桩里加任何 `dispatchScenario` 分支或判定。
+v0.4.0+ 模板已带 `ScenarioName.SERVE("__mc_testkit_serve__")` + `bootstrapScenario` 的空闲分支（不驱动 / 不挂超时 / 不写结果 / 不关服）+ `onPlayerJoin` 对 SERVE 直接 `return`（不动真人玩家背包）。**你要做的就是确保桩 re-sync 到带这个分支的新模板。** 没有它：serve 下桩会把未知哨兵当默认 `smoke` 跑、写结果、几秒后 `Bukkit.shutdown()` 把服务端关掉（症状＝「serve 起来几秒就自己停了」）；或更老的桩抛「未知场景」被禁用、服务端仍挂着但少了「干净空闲」。serve **不需要**你在桩里加任何 `dispatchScenario` 分支或判定。
 
 **③ bot（可选，人机混场）——必须「自驱」，别等桩 ready。**
 serve 桩空闲、**不发 `E2E_READY`**，所以 serve 并起的 bot 不能复用「`await waitForMessage(E2E_READY…)` 再动」的场景 action（会干等到超时）。给它一个连上就自行动作的 action：

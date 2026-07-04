@@ -28,7 +28,7 @@ pluginManagement {
 
 ```kotlin
 plugins {
-    id("top.wcpe.mc-testkit") version "0.4.0"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
+    id("top.wcpe.mc-testkit") version "0.4.1"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
 }
 
 mcTestkit {
@@ -46,18 +46,35 @@ mcTestkit {
 
 > 平台便捷量 `paper`/`folia`/`velocity`/`waterfall`/`bungeecord` 直接可用，无需 import。
 
-## 3. 取并改造 `template/`（桩 + 机器人）
+## 3. 先确认并取得 `template/`（桩 + 机器人）
 
-`template/` 是**拷贝脚手架、不在 maven 构件里**（编排插件运行期不依赖它），所以走网络插件接入时它**不随 maven 自动来**——单独从 mc-testkit 的 **GitHub 仓库**取（**别靠本机 mc-testkit 副本**，与禁 `includeBuild` 一致）：
+`template/` 是**拷贝脚手架、不在 maven 构件里**（编排插件运行期不依赖它），所以走网络插件接入时它**不随 maven 自动来**。执行前必须先问用户模板来源，禁止默认选择：
+
+- **内置模板快照**：用本技能 `assets/mc-testkit-template-v0.4.1.zip`。适合离线、可复现接入。
+- **GitHub 实时拉取**：从 `wcpe/mc-testkit` 指定 tag/branch/commit 取 `template/`。适合需要精确对齐上游版本。
+
+用户选择后，定位本技能目录并运行对应命令：
 
 ```bash
-# 只取 template/ 一个目录（浅克隆 + sparse-checkout）；版本对齐你用的 mc-testkit
-git clone --depth 1 --filter=blob:none --sparse https://github.com/wcpe/mc-testkit /tmp/mctk
-git -C /tmp/mctk sparse-checkout set template
-cp -r /tmp/mctk/template e2e        # 拷进你仓库、改名 e2e/；之后完全归你
+# 内置快照：不依赖网络
+node scripts/resolve-template.mjs --source embedded --destination e2e
+
+# GitHub 拉取：0.4.1 会归一到当前内置快照对应的发布提交
+node scripts/resolve-template.mjs --source github --version 0.4.1 --destination e2e
 ```
 
-> 经 **mc-testkit 的 Claude Code plugin** 接入时更省事：`/mc-testkit-init` 命令替你做上面这套 GitHub sparse-checkout，并**按你声明的 mc-testkit 版本 checkout 对应 tag**（保证模板与编排版本一致），再拷进 `e2e/`。
+目标 `e2e/` 已存在时必须停下来确认；确认可覆盖后才加 `--force`。
+
+如不用本技能脚本，GitHub 取模板的等效手工步骤是：
+
+```bash
+# 只取 template/ 一个目录（sparse-checkout）；版本对齐你用的 mc-testkit
+rm -rf .tmp/mctk
+git clone --filter=blob:none --sparse https://github.com/wcpe/mc-testkit .tmp/mctk
+git -C .tmp/mctk checkout ce8822f628e82f4a7500479e1d8bf818c350d1ba
+git -C .tmp/mctk sparse-checkout set template
+cp -r .tmp/mctk/template e2e        # 拷进你仓库、改名 e2e/；之后完全归你
+```
 
 拷得 `e2e/harness/`（Kotlin 桩）与 `e2e/bot/`（mineflayer 机器人）。它是**拷贝物不是依赖**：拷走后完全归你、自由分叉；编排插件运行期不依赖它。
 
@@ -83,8 +100,8 @@ cp -r /tmp/mctk/template e2e        # 拷进你仓库、改名 e2e/；之后完�
 然后让编排把它和被测插件一起注入测试服 `plugins/`——`dependencies{}` 的每个值是**环境变量名或路径**（运行期解析，保证可移植）：
 
 ```bash
-export MC_TESTKIT_E2E_PLUGIN_UNDER_TEST_JAR=$PWD/build/libs/your-plugin.jar   # 指向你的插件产物；用 $PWD/相对路径，别写死本机绝对路径
-export HARNESS_JAR=$PWD/e2e/harness/build/libs/mc-testkit-e2e-harness-1.0.0-SNAPSHOT.jar
+export MC_TESTKIT_E2E_PLUGIN_UNDER_TEST_JAR=build/libs/your-plugin.jar   # 指向你的插件产物；用相对路径，别写死本机绝对路径
+export HARNESS_JAR=e2e/harness/build/libs/mc-testkit-e2e-harness-1.0.0-SNAPSHOT.jar
 ```
 
 - **被测插件**（`pluginUnderTest`）注入后改名 `plugin-under-test.jar`；其余 `plugin(...)` 按原名注入。

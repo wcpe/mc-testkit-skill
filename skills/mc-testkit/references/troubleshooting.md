@@ -35,7 +35,7 @@ E2E 跑不过时按这套定位。先看结论真源，再按症状查表。表�
 | 反复下载服务端 / 代理 jar，很慢 | 下载缓存被清 | 首次需联网，之后复用；无网 / CI 用 `*_JAR`（如 `PAPER_JAR`/`WATERFALL_JAR`）或 `*_VERSION` 提供本地 jar；`syncE2eRuntimeCache` 回写缓存 |
 | 跑错任务、说没这个任务 | 任务名按 `<Key>` 折法生成，写错了 | `./gradlew :tasks` 看实际生成名；记住 `cross-server`→`e2eCrossServerCluster`、`continuous-stress`→`e2eContinuousStressStress` |
 | 控制消息匹配不到（带颜色码 / 富文本） | 没归一文本就 `includes` | 用模板 `lib/messages.js` 的 `waitForMessage`（内部已 `normalizeText` 去 §颜色码、压空白），别手撸字符串比较 |
-| **serve 起来几秒就自己停了** | 桩没认 serve 哨兵（老模板），把 `__mc_testkit_serve__` 当默认 `smoke` 跑了、写结果后 `Bukkit.shutdown()` | 把桩 re-sync 到 v0.4.0 模板（带 `ScenarioName.SERVE` 空闲分支：不驱动 / 不判定 / 不关服）。serve 不需要你写任何场景逻辑 |
+| **serve 起来几秒就自己停了** | 桩没认 serve 哨兵（老模板），把 `__mc_testkit_serve__` 当默认 `smoke` 跑了、写结果后 `Bukkit.shutdown()` | 把桩 re-sync 到 v0.4.0+ 模板（带 `ScenarioName.SERVE` 空闲分支：不驱动 / 不判定 / 不关服）。serve 不需要你写任何场景逻辑 |
 | **serve 里的 bot 进服后干等不动 / 超时** | bot 用了「等 `E2E_READY` 再动」的场景 action，但 serve 桩空闲**不发 ready** | serve 的 bot 要「自驱」：连上即自行动作（见 `authoring-scenarios.md` §serve 的 `idle-walk` 示例），别复用自动化场景的 action |
 
 ## 核对清单（跑之前过一遍能省很多来回）
@@ -49,7 +49,7 @@ E2E 跑不过时按这套定位。先看结论真源，再按症状查表。表�
 - **经代理用 `via`**；**集群必经代理**；**压测不用 `count`**、**压测不经 Velocity**（用 Waterfall/BungeeCord 或直连）。
 - **判定是真的**：示例无条件 PASS 已替换。
 - **botDir 指对**：`-PmcTestkit.botDir=<你的 bot 目录>`。
-- **（若用 serve 持久手测）桩模板已更到 v0.4.0**（含 `ScenarioName.SERVE` 空闲分支，否则 serve 会几秒自停）；serve 的 bot 用自驱 action（不等 `E2E_READY`）。
+- **（若用 serve 持久手测）桩模板已更到 v0.4.0+**（含 `ScenarioName.SERVE` 空闲分支，否则 serve 会几秒自停）；serve 的 bot 用自驱 action（不等 `E2E_READY`）。
 
 ## 实在定位不了
 

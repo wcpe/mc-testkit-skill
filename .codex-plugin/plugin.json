@@ -1,0 +1,47 @@
+{
+  "name": "mc-testkit-skill",
+  "version": "0.4.1",
+  "description": "Codex workflows for wiring mc-testkit E2E and serve testing into Minecraft Bukkit/Paper/Folia plugin projects.",
+  "author": {
+    "name": "WCPE",
+    "url": "https://github.com/wcpe"
+  },
+  "homepage": "https://github.com/wcpe/mc-testkit-skill",
+  "repository": "https://github.com/wcpe/mc-testkit-skill",
+  "license": "MIT",
+  "keywords": [
+    "minecraft",
+    "bukkit",
+    "paper",
+    "folia",
+    "e2e",
+    "integration-test",
+    "gradle",
+    "mc-testkit",
+    "mineflayer"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "mc-testkit",
+    "shortDescription": "Minecraft plugin E2E testing workflows",
+    "longDescription": "Reusable Codex workflows for adding mc-testkit to Bukkit, Paper, and Folia plugin projects, including template-source confirmation, DSL wiring, harness and bot setup, serve mode, task selection, and result-file troubleshooting.",
+    "developerName": "WCPE",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/wcpe/mc-testkit-skill",
+    "privacyPolicyURL": "https://github.com/wcpe/mc-testkit-skill#privacy",
+    "termsOfServiceURL": "https://github.com/wcpe/mc-testkit-skill#terms",
+    "defaultPrompt": [
+      "Use mc-testkit to add E2E smoke testing to this Paper plugin.",
+      "Use mc-testkit to add a cross-server scenario with a mineflayer bot.",
+      "Use mc-testkit to debug why this E2E result file failed."
+    ],
+    "brandColor": "#2F855A",
+    "screenshots": []
+  }
+}
