@@ -28,7 +28,7 @@ Claude Code 侧适合需要 slash command 和 hook 护栏的团队工作流；�
 |---|---|---|
 | 插件 manifest | `.codex-plugin/plugin.json` | 声明 Codex 插件元数据、技能、MCP、展示信息 |
 | 技能 | `skills/mc-testkit/` | 触发 mc-testkit 接入、写场景、跑任务、排障流程 |
-| 内置模板资产 | `skills/mc-testkit/assets/mc-testkit-template-v0.4.1.zip` | 离线、可复现复制 `template/` |
+| 内置模板资产 | `skills/mc-testkit/assets/mc-testkit-template-v0.4.2.zip` | 离线、可复现复制 `template/` |
 | 模板脚本 | `skills/mc-testkit/scripts/resolve-template.mjs` | 在内置模板和 GitHub 实时模板之间执行用户已确认的选择 |
 | MCP server | `.mcp.json` + `mcp/mc-testkit-mcp.mjs` | 只读工具：读结果文件、列 Gradle 生成任务 |
 
@@ -38,7 +38,7 @@ Codex 侧适合通过自然语言触发 skill、通过 MCP 读取任务和结果
 
 从零接入或重新同步 `template/` 前，技能必须先问用户选择：
 
-- **内置模板快照**：来源为 `wcpe/mc-testkit` 版本 `0.4.1`、提交 `ce8822f628e82f4a7500479e1d8bf818c350d1ba`。离线、可复现，但可能落后上游。
+- **内置模板快照**：来源为 `wcpe/mc-testkit` 版本 `0.4.2`、提交 `b2de34cb16b36c5beeb252f497f4cc7b84b7cb9c`。离线、可复现，但可能落后上游。
 - **GitHub 实时拉取**：从 `https://github.com/wcpe/mc-testkit` 指定 tag/branch/commit 取 `template/`。能对齐指定版本，但依赖网络和上游可用性。
 
 用户未选择时不得复制模板；目标目录已存在时也必须再次确认覆盖。

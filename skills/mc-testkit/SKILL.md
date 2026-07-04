@@ -14,14 +14,14 @@ mc-testkit 的形态是：Gradle 编排插件 `top.wcpe.mc-testkit` 负责起真
 
 从零接入、初始化或重新同步 `template/` 前，必须先停下来问用户选择模板来源，禁止默认选择：
 
-- **内置模板快照**：使用本技能 `assets/mc-testkit-template-v0.4.1.zip`，来源为 `wcpe/mc-testkit` 版本 `0.4.1`、提交 `ce8822f628e82f4a7500479e1d8bf818c350d1ba`。优点是离线、可复现；缺点是可能落后上游。
+- **内置模板快照**：使用本技能 `assets/mc-testkit-template-v0.4.2.zip`，来源为 `wcpe/mc-testkit` 版本 `0.4.2`、提交 `b2de34cb16b36c5beeb252f497f4cc7b84b7cb9c`。优点是离线、可复现；缺点是可能落后上游。
 - **GitHub 实时拉取**：从 `https://github.com/wcpe/mc-testkit` 的指定 tag/branch/commit sparse-checkout `template/`。优点是能对齐用户指定版本；缺点是依赖网络和上游可用性。
 
 用户未明确选择时，只提问，不执行复制。用户选择后，定位本技能目录（包含本 `SKILL.md`），再运行：
 
 ```bash
 node scripts/resolve-template.mjs --source embedded --destination e2e
-node scripts/resolve-template.mjs --source github --version 0.4.1 --destination e2e
+node scripts/resolve-template.mjs --source github --version 0.4.2 --destination e2e
 ```
 
 目标目录已存在时必须再次确认；确认可覆盖后才加 `--force`。
@@ -48,7 +48,7 @@ node scripts/resolve-template.mjs --source github --version 0.4.1 --destination 
 ## Codex 插件能力
 
 - 技能：本 `mc-testkit` 技能负责触发、路由、约束和模板来源确认。
-- 资产：内置 `0.4.1` 模板快照，供离线/可复现接入使用。
+- 资产：内置 `0.4.2` 模板快照，供离线/可复现接入使用。
 - 脚本：`scripts/resolve-template.mjs` 统一复制内置模板或 GitHub 模板。
 - MCP：`mc_testkit_read_result` 读结果文件；`mc_testkit_list_tasks` 列 Gradle 生成任务。
 

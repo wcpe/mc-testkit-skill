@@ -28,7 +28,7 @@ pluginManagement {
 
 ```kotlin
 plugins {
-    id("top.wcpe.mc-testkit") version "0.4.1"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
+    id("top.wcpe.mc-testkit") version "0.4.2"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
 }
 
 mcTestkit {
@@ -50,7 +50,7 @@ mcTestkit {
 
 `template/` 是**拷贝脚手架、不在 maven 构件里**（编排插件运行期不依赖它），所以走网络插件接入时它**不随 maven 自动来**。执行前必须先问用户模板来源，禁止默认选择：
 
-- **内置模板快照**：用本技能 `assets/mc-testkit-template-v0.4.1.zip`。适合离线、可复现接入。
+- **内置模板快照**：用本技能 `assets/mc-testkit-template-v0.4.2.zip`。适合离线、可复现接入。
 - **GitHub 实时拉取**：从 `wcpe/mc-testkit` 指定 tag/branch/commit 取 `template/`。适合需要精确对齐上游版本。
 
 用户选择后，定位本技能目录并运行对应命令：
@@ -59,8 +59,8 @@ mcTestkit {
 # 内置快照：不依赖网络
 node scripts/resolve-template.mjs --source embedded --destination e2e
 
-# GitHub 拉取：0.4.1 会归一到当前内置快照对应的发布提交
-node scripts/resolve-template.mjs --source github --version 0.4.1 --destination e2e
+# GitHub 拉取：0.4.2 会归一到当前内置快照对应的发布提交
+node scripts/resolve-template.mjs --source github --version 0.4.2 --destination e2e
 ```
 
 目标 `e2e/` 已存在时必须停下来确认；确认可覆盖后才加 `--force`。
@@ -71,7 +71,7 @@ node scripts/resolve-template.mjs --source github --version 0.4.1 --destination 
 # 只取 template/ 一个目录（sparse-checkout）；版本对齐你用的 mc-testkit
 rm -rf .tmp/mctk
 git clone --filter=blob:none --sparse https://github.com/wcpe/mc-testkit .tmp/mctk
-git -C .tmp/mctk checkout ce8822f628e82f4a7500479e1d8bf818c350d1ba
+git -C .tmp/mctk checkout b2de34cb16b36c5beeb252f497f4cc7b84b7cb9c
 git -C .tmp/mctk sparse-checkout set template
 cp -r .tmp/mctk/template e2e        # 拷进你仓库、改名 e2e/；之后完全归你
 ```

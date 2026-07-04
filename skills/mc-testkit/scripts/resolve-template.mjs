@@ -13,14 +13,16 @@ import {
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const EMBEDDED_ARCHIVE = 'mc-testkit-template-v0.4.1.zip'
-const DEFAULT_VERSION = '0.4.1'
+const EMBEDDED_ARCHIVE = 'mc-testkit-template-v0.4.2.zip'
+const DEFAULT_VERSION = '0.4.2'
 const DEFAULT_REPO = 'https://github.com/wcpe/mc-testkit'
 const COMMIT_RE = /^[0-9a-fA-F]{40}$/
 const SEMVER_RE = /^\d+\.\d+\.\d+(?:[-+].*)?$/
 const KNOWN_VERSION_REFS = new Map([
   ['0.4.1', 'ce8822f628e82f4a7500479e1d8bf818c350d1ba'],
   ['v0.4.1', 'ce8822f628e82f4a7500479e1d8bf818c350d1ba'],
+  ['0.4.2', 'b2de34cb16b36c5beeb252f497f4cc7b84b7cb9c'],
+  ['v0.4.2', 'b2de34cb16b36c5beeb252f497f4cc7b84b7cb9c'],
 ])
 
 function parseArgs(argv) {
