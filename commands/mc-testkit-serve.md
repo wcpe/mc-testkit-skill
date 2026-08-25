@@ -3,7 +3,7 @@ description: 给已接 mc-testkit 的项目配置 serve 持久手测（起真实
 argument-hint: "[serve 名，默认 dev]"
 ---
 
-给当前已接入 mc-testkit 的项目配置 **serve 持久手测**（v0.4.0+）：起真实服务端、装上被测插件、**挂住**供真人客户端连进去手点（可选并起 bot 人机混场）。serve **不判定、不自动收尾**，是和自动化 E2E 并存的「第二条命」。
+给当前已接入 mc-testkit 的项目配置 **serve 持久手测**（v0.4.0+，当前版本 0.6.0）：起真实服务端、装上被测插件、**挂住**供真人客户端连进去手点（可选并起 bot 人机混场）。serve **不判定、不自动收尾**，是和自动化 E2E 并存的「第二条命」。
 
 先读 `${CLAUDE_PLUGIN_ROOT}/skills/mc-testkit/references/authoring-scenarios.md` 的 §serve 与 `dsl-tasks-and-env.md` §1/§2。要点：
 

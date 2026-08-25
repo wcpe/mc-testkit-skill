@@ -20,8 +20,10 @@ mcTestkit {
     // —— 后端节点（Paper/Folia）——
     backend("s1") {
         platform = paper        // paper | folia（仅此二者，不含 Spigot/Bukkit/Sponge）
-        version = "1.20.1"       // 默认 1.20.1
+        version = "1.20.1"       // 默认 1.20.1；v0.6.0 起支持 1.7.10 / 1.8.8 / 1.12.2 / 1.16.5 / 1.17.1 / 1.19.4 / 1.20.1 / 1.21.1 及 26.2 等新版号（无 1. 前缀）
         port = 25565             // Int?，省略则按端口基数 + 序号推导
+        env("MYPLUGIN_NODE", "s1")                                  // v0.5.0 节点运行时注入：只进本后端子进程（禁止 MC_TESTKIT_E2E_ 前缀）
+        templateDirectory("MC_TESTKIT_E2E_S1_TEMPLATE_DIR")         // v0.5.0 节点模板目录（env 名或路径，覆盖旧全局 SERVER_TEMPLATE_DIR）
     }
 
     // —— 代理节点与路由（Velocity/Waterfall/BungeeCord）——
@@ -29,6 +31,9 @@ mcTestkit {
         platform = waterfall     // velocity | waterfall | bungeecord
         port = 25577             // Int?，可省
         routesTo("s1")           // 转发到的后端名；集群可 routesTo("s1","s2")；目标存在性配置期校验
+        plugin("MC_TESTKIT_E2E_PROXY_PLUGIN_JAR")                   // v0.5.0 代理专属插件（只进该代理；dependencies{} 仍只注后端）
+        env("MYPLUGIN_PROXY_NODE", "wf")                            // v0.5.0 节点 env：只进本代理子进程
+        templateDirectory("MC_TESTKIT_E2E_PROXY_TEMPLATE_DIR")      // v0.5.0 代理模板目录
     }
 
     // —— 场景：五种形态 ——
@@ -92,7 +97,9 @@ mcTestkit {
 }
 ```
 
-**校验（配置期，中文报错）**：节点重名、后端/代理名相撞、路由目标不存在、端口冲突、场景引用缺失、`count < 1`、多 bot 须各有唯一角色名、压测禁 `count`/多 bot、`botsPerServer`/`durationSeconds` ≤ 0、**压测经 Velocity**（`stress + via=velocity`，Velocity 单端口不支持钉服——压测改用 Waterfall/BungeeCord 或直连）。**serve 同理校验**：引用的 backend/via 存在、serve 名唯一、集群 serve（`backends(...)`）须配 `via` 且路由覆盖全部后端、`backend` 与 `backends(...)` 互斥、serve 的可选 bot 同 scenario 多 bot 规则。
+**校验（配置期，中文报错）**：节点重名、后端/代理名相撞、路由目标不存在、端口冲突、场景引用缺失、`count < 1`、多 bot 须各有唯一角色名、压测禁 `count`/多 bot、`botsPerServer`/`durationSeconds` ≤ 0、**压测经 Velocity**（`stress + via=velocity`，Velocity 单端口不支持钉服——压测改用 Waterfall/BungeeCord 或直连）。**serve 同理校验**：引用的 backend/via 存在、serve 名唯一、集群 serve（`backends(...)`）须配 `via` 且路由覆盖全部后端、`backend` 与 `backends(...)` 互斥、serve 的可选 bot 同 scenario 多 bot 规则。**v0.5.0 节点注入校验**：节点 `env(...)` 名不得为空 / 含等号或空字符 / 以 `MC_TESTKIT_E2E_` 开头（大小写不敏感）；`plugin(...)` / `templateDirectory(...)` 指向的资源须存在（插件须是 `.jar`、模板须是目录），否则启动任务涉及任一节点前中文失败。
+
+**v0.6.0 多版本拉起（FR-21）**：8 个代表版本（1.7.10 / 1.8.8 / 1.12.2 / 1.16.5 / 1.17.1 / 1.19.4 / 1.20.1 / 1.21.1）Paper 下载、拉起与版本感知配置适配；`version` 也可写 `26.2` 等新版号（major≥26 走现代启动参数）。按版本自动：过滤 `server.properties` 不支持键、生成 `paper.yml` / `paper-global.yml`、选择 Java 运行时（`MC_TESTKIT_JAVA_HOME_<版本段>` 覆盖 > `JAVA_HOME` 回退 > 当前 JVM；1.7.10 自动跳过 bot 并告警）。
 
 **多 bot 唯一性**：同质 `bot{count=N}` 展开成 `username-1..N` 唯一名；展开后的 key/username 与其它 bot 不能撞（如 `bot("w"){count=2}` 派生 `w-1`/`w-2` 与显式 `bot("w-1")` 会撞），撞了配置期报错。
 
@@ -140,9 +147,10 @@ mcTestkit {
 | 名 | 含义 |
 |---|---|
 | `MINECRAFT_VERSION` | 覆盖后端 MC 版本 |
-| `SERVER_TEMPLATE_DIR` | 服务端模板目录，prepare 铺进运行目录（排除世界/日志）——放依赖插件配置、被测插件 test 业务配置 |
+| `SERVER_TEMPLATE_DIR` | 服务端模板目录，prepare 铺进运行目录（排除世界/日志）——放依赖插件配置、被测插件 test 业务配置；v0.5.0 起被节点 `templateDirectory(...)` 声明时优先用节点模板 |
 | `PLUGIN_UNDER_TEST_JAR` | 被测插件 jar（`dependencies.pluginUnderTest` 常指它） |
 | `PAPER_JAR` / `FOLIA_JAR` | 后端 jar 覆盖（离线 / CI 逃生口，跳过下载） |
+| `JAVA_HOME_<版本段>` | **v0.6.0（FR-21）**：按 MC 版本段选 Java 运行时，覆盖 `JAVA_HOME` 回退。段 = 版本前两段、点转下划线：`MC_TESTKIT_JAVA_HOME_1_7` → 1.7.10、`MC_TESTKIT_JAVA_HOME_1_20` → 1.20.x。1.7.10 需 Java 8、1.20+ 需 Java 17+（默认 `JAVA_HOME` / 当前 JVM 不满足时报错提示补对应 env） |
 
 **桩↔编排交接**（编排起后端时下发，桩优先读、覆盖 config.yml）
 | 名 | 含义 |

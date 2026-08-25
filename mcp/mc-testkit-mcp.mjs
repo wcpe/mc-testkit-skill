@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
-const SERVER = { name: 'mc-testkit', version: '0.4.2' }
+const SERVER = { name: 'mc-testkit', version: '0.6.0' }
 
 const TOOLS = [
   {

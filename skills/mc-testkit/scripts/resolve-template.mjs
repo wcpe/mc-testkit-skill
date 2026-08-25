@@ -13,8 +13,8 @@ import {
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const EMBEDDED_ARCHIVE = 'mc-testkit-template-v0.4.2.zip'
-const DEFAULT_VERSION = '0.4.2'
+const EMBEDDED_ARCHIVE = 'mc-testkit-template-v0.6.0.zip'
+const DEFAULT_VERSION = '0.6.0'
 const DEFAULT_REPO = 'https://github.com/wcpe/mc-testkit'
 const COMMIT_RE = /^[0-9a-fA-F]{40}$/
 const SEMVER_RE = /^\d+\.\d+\.\d+(?:[-+].*)?$/
@@ -23,6 +23,12 @@ const KNOWN_VERSION_REFS = new Map([
   ['v0.4.1', 'ce8822f628e82f4a7500479e1d8bf818c350d1ba'],
   ['0.4.2', 'b2de34cb16b36c5beeb252f497f4cc7b84b7cb9c'],
   ['v0.4.2', 'b2de34cb16b36c5beeb252f497f4cc7b84b7cb9c'],
+  ['0.5.0', '8b29faba92ca20749dd367d31f411dec2f465caa'],
+  ['v0.5.0', '8b29faba92ca20749dd367d31f411dec2f465caa'],
+  ['0.5.1', '8aa84f03f364d04509e4178be3738eff4a857f80'],
+  ['v0.5.1', '8aa84f03f364d04509e4178be3738eff4a857f80'],
+  ['0.6.0', '43fae4cb420a1201510cc00bf3033b9160974175'],
+  ['v0.6.0', '43fae4cb420a1201510cc00bf3033b9160974175'],
 ])
 
 function parseArgs(argv) {

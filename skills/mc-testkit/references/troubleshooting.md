@@ -37,6 +37,8 @@ E2E 跑不过时按这套定位。先看结论真源，再按症状查表。表�
 | 控制消息匹配不到（带颜色码 / 富文本） | 没归一文本就 `includes` | 用模板 `lib/messages.js` 的 `waitForMessage`（内部已 `normalizeText` 去 §颜色码、压空白），别手撸字符串比较 |
 | **serve 起来几秒就自己停了** | 桩没认 serve 哨兵（老模板），把 `__mc_testkit_serve__` 当默认 `smoke` 跑了、写结果后 `Bukkit.shutdown()` | 把桩 re-sync 到 v0.4.0+ 模板（带 `ScenarioName.SERVE` 空闲分支：不驱动 / 不判定 / 不关服）。serve 不需要你写任何场景逻辑 |
 | **serve 里的 bot 进服后干等不动 / 超时** | bot 用了「等 `E2E_READY` 再动」的场景 action，但 serve 桩空闲**不发 ready** | serve 的 bot 要「自驱」：连上即自行动作（见 `authoring-scenarios.md` §serve 的 `idle-walk` 示例），别复用自动化场景的 action |
+| 多版本后端（v0.6.0）起不来 / 日志报 Java 版本不兼容 | 当前 `JAVA_HOME` / JVM 不匹配该 MC 版本段（1.7.10 要 Java 8、1.20+ 要 Java 17+） | 给对应版本段设 `MC_TESTKIT_JAVA_HOME_<段>`（如 1.7.10 → `MC_TESTKIT_JAVA_HOME_1_7`、1.20.x → `MC_TESTKIT_JAVA_HOME_1_20`），优先级：段 env > `JAVA_HOME` > 当前 JVM |
+| 1.7.10 后端没起 bot / 日志告警 | 1.7.10 不支持 mineflayer bot（版本范围校验） | 这是 v0.6.0 预期行为：1.7.10 只验服务端拉起；1.8.8+ 才正常起 bot。别当 bug |
 
 ## 核对清单（跑之前过一遍能省很多来回）
 

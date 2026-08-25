@@ -6,8 +6,8 @@
 
 ## 0. 前置条件
 
-- **JDK**：匹配后端 MC 版本所需的 Java（Paper 1.20.1 → JDK 17）。
-- **Node ≥ 18**：跑 mineflayer 机器人。
+- **JDK**：匹配后端 MC 版本所需的 Java。v0.6.0（FR-21）按版本段选运行时：1.7.10 → Java 8、1.12.2/1.16.5/1.17.1 → Java 17、1.19.4+ → Java 17/21（各段用 `MC_TESTKIT_JAVA_HOME_<版本段>` 覆盖 > `JAVA_HOME` 回退 > 当前 JVM；同机多版本 JDK 各设一个段 env 即可）。
+- **Node ≥ 18**：跑 mineflayer 机器人（1.7.10 后端自动跳过 bot 并告警）。
 - **网络（首次）**：编排内置模块首次会下载 Paper/Folia/代理 jar 并缓存复用；无网 / 弱网时用 `MC_TESTKIT_E2E_*_JAR` / `*_VERSION` 环境变量提供本地 jar（见 `dsl-tasks-and-env.md`）。
 - **依赖服务**：被测插件要的 MySQL/Redis 等，由你在跑之前起好（本地容器 / 实例），端口与凭据匹配其测试配置。真实后端含数据源初始化常需数十秒启动——机器人默认连接重试窗口已放到 300s（`BOT_CONNECT_TIMEOUT_MS`）；集群/压测另有端口就绪门确定性等后端 + 代理端口可连再放 bot。
 
@@ -28,7 +28,7 @@ pluginManagement {
 
 ```kotlin
 plugins {
-    id("top.wcpe.mc-testkit") version "0.4.2"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
+    id("top.wcpe.mc-testkit") version "0.6.0"   // 版本以 mc-testkit README/CHANGELOG 当前值为准
 }
 
 mcTestkit {
@@ -50,7 +50,7 @@ mcTestkit {
 
 `template/` 是**拷贝脚手架、不在 maven 构件里**（编排插件运行期不依赖它），所以走网络插件接入时它**不随 maven 自动来**。执行前必须先问用户模板来源，禁止默认选择：
 
-- **内置模板快照**：用本技能 `assets/mc-testkit-template-v0.4.2.zip`。适合离线、可复现接入。
+- **内置模板快照**：用本技能 `assets/mc-testkit-template-v0.6.0.zip`。适合离线、可复现接入。
 - **GitHub 实时拉取**：从 `wcpe/mc-testkit` 指定 tag/branch/commit 取 `template/`。适合需要精确对齐上游版本。
 
 用户选择后，定位本技能目录并运行对应命令：
@@ -59,8 +59,8 @@ mcTestkit {
 # 内置快照：不依赖网络
 node scripts/resolve-template.mjs --source embedded --destination e2e
 
-# GitHub 拉取：0.4.2 会归一到当前内置快照对应的发布提交
-node scripts/resolve-template.mjs --source github --version 0.4.2 --destination e2e
+# GitHub 拉取：0.6.0 会归一到当前内置快照对应的发布提交
+node scripts/resolve-template.mjs --source github --version 0.6.0 --destination e2e
 ```
 
 目标 `e2e/` 已存在时必须停下来确认；确认可覆盖后才加 `--force`。
@@ -71,7 +71,7 @@ node scripts/resolve-template.mjs --source github --version 0.4.2 --destination 
 # 只取 template/ 一个目录（sparse-checkout）；版本对齐你用的 mc-testkit
 rm -rf .tmp/mctk
 git clone --filter=blob:none --sparse https://github.com/wcpe/mc-testkit .tmp/mctk
-git -C .tmp/mctk checkout b2de34cb16b36c5beeb252f497f4cc7b84b7cb9c
+git -C .tmp/mctk checkout 43fae4cb420a1201510cc00bf3033b9160974175
 git -C .tmp/mctk sparse-checkout set template
 cp -r .tmp/mctk/template e2e        # 拷进你仓库、改名 e2e/；之后完全归你
 ```

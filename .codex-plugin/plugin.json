@@ -1,6 +1,6 @@
 {
   "name": "mc-testkit-skill",
-  "version": "0.4.2",
+  "version": "0.6.0",
   "description": "Codex workflows for wiring mc-testkit E2E and serve testing into Minecraft Bukkit/Paper/Folia plugin projects.",
   "author": {
     "name": "WCPE",
