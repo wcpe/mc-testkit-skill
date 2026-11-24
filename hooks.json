@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/guard-mc-testkit.js\""
+            "command": "if [ -f \"${DEVIN_PLUGIN_ROOT:-${PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}}/hooks/guard-mc-testkit.js\" ]; then node \"${DEVIN_PLUGIN_ROOT:-${PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}}/hooks/guard-mc-testkit.js\"; fi"
           }
         ]
       }
