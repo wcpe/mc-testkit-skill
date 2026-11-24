@@ -56,3 +56,15 @@ E2E 跑不过时按这套定位。先看结论真源，再按症状查表。表�
 ## 实在定位不了
 
 去读 mc-testkit 仓库的 `.github/workflows/e2e.yml`（一份能跑通的最小消费者实例）和 `docs/specs/fr-08-first-consumer.md`（记录了首个接入项目实机暴露并修掉的全部「集成缝」——你遇到的多半在里面）。契约疑问以 `docs/API.md` 为准。
+
+
+---
+
+## 新版本症状的排障入口
+
+- **构建被拒接手 / `RUN_FAIL prior-output-owner-not-successful`**（v0.18.0）：上一轮构建留下的进程还在写结果目录。先 `./gradlew stopE2eProcesses`（按进程台账核身份收尾），再重跑；确认无活进程时删 `build/mc-testkit/results/output-run.state`。
+- **bot/钩子输出超限**：单日志 >64MiB 只截断不失败；全构建合计 >1GiB 判失败（`[OUTPUT_LIMIT] limit=run`）。调 `mc.testkit.bot.log.limit.bytes` / `mc.testkit.bot.log.runLimit.bytes` 或 env `MC_TESTKIT_E2E_BOT_LOG_LIMIT_BYTES` / `_RUN_LIMIT_BYTES`。
+- **场景超时但业务没跑完**：等桩写结果上限默认 600s，用 `resultTimeoutSeconds` 按场景放宽（v0.18.0）。
+- **`mavenPlugin`/`mavenServer` 坐标解析失败**（v0.11.0）：按中文报错归因——坐标拼写 / 该坐标的仓库未声明（`PREFER_SETTINGS` 时只能写在 settings.gradle.kts）/ 拉取凭据缺失；`-SNAPSHOT` 放行、动态版本与区间被拒。
+- **npm install 报 404/401**（v0.17.0+）：`@wcpe/mc-testkit-bot` 在私有源——项目根或 `~/.npmrc` 加 `@wcpe:registry=https://maven.wcpe.top/repository/npm-release/`；残留过期 `_authToken` 会 401，删掉。
+- **被测插件在 Folia 上不加载**：桩的 Folia 兼容由共享构件反射调度保证；被测插件自身须支持 Folia（`folia-supported` 与调度器 API）。

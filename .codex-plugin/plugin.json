@@ -1,7 +1,7 @@
 {
   "name": "mc-testkit-skill",
-  "version": "0.6.0",
-  "description": "Codex workflows for wiring mc-testkit E2E and serve testing into Minecraft Bukkit/Paper/Folia plugin projects.",
+  "version": "0.18.0",
+  "description": "Codex workflows for wiring mc-testkit E2E and serve testing into Minecraft Bukkit/Paper/Folia/Spigot plugin projects.",
   "author": {
     "name": "WCPE",
     "url": "https://github.com/wcpe"
@@ -14,18 +14,20 @@
     "bukkit",
     "paper",
     "folia",
+    "spigot",
     "e2e",
     "integration-test",
     "gradle",
     "mc-testkit",
-    "mineflayer"
+    "mineflayer",
+    "gametest"
   ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "mc-testkit",
     "shortDescription": "Minecraft plugin E2E testing workflows",
-    "longDescription": "Reusable Codex workflows for adding mc-testkit to Bukkit, Paper, and Folia plugin projects, including template-source confirmation, DSL wiring, harness and bot setup, serve mode, task selection, and result-file troubleshooting.",
+    "longDescription": "Reusable Codex workflows for adding mc-testkit to Bukkit, Paper, Folia, and Spigot plugin projects, including template-source confirmation, DSL wiring (backends/proxies/scenarios/version matrix/Maven-coordinate artifact sources/persistent run dirs), harness and bot setup, serve mode with console commands, lifecycle hooks, task selection, and result-file troubleshooting.",
     "developerName": "WCPE",
     "category": "Developer Tools",
     "capabilities": [

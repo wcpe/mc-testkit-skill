@@ -31,7 +31,7 @@ test('copies embedded template without leaking absolute destination', async () =
     )
 
     assert.equal(result.status, 0, result.stderr || result.stdout)
-    assert.match(result.stdout, /mc-testkit-template-v0\.6\.0\.zip/)
+    assert.match(result.stdout, /mc-testkit-template-v0\.18\.0\.zip/)
     assert.equal(result.stdout.includes(root), false)
     assert.equal(result.stderr.includes(root), false)
     assert.equal(existsSync(join(destination, 'harness', 'build.gradle.kts')), true)

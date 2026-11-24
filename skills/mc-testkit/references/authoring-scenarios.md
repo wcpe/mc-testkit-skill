@@ -264,3 +264,16 @@ module.exports = async function runIdleWalk(context) {
 - [ ] 异步事件里的判定切回主线程再 `passScenario`。
 - [ ] 集群场景写了 `via`（必经代理）；压测场景没用 `count`/多 bot。
 - [ ] 跑对任务名（按 `<Key>` 折法）；透传业务参数走 `bot{ env() }` 而非改契约 env。
+
+
+---
+
+## 新版本能力速览（v0.7.0–v0.18.0）
+
+- **场景生命周期钩子（FR-24，v0.14.0）**：`scenario("x") { hooks { before { ... }; ready { ... }; after { ... } } }` 三个时序点跑外部命令/脚本（如起依赖服务、收集取证）。钩子是后台进程、受输出预算监管；拿不到预算时拒绝执行外部命令。
+- **bot OP 提权（FR-29，v0.17.0）**：`bot { op = true }` 以玩家身份获得 OP（合并 `ops.json`，权限是显式开关）。需要 **console 身份**或**结构化命令结果**时用 `E2E_CMD` 通道 + bot 侧 `execCommand`/`execCommands`（FR-30/31，同版本）——两者互补，不能互替。
+- **断言登记表（v0.17.0）**：harness-core 提供服务端断言登记表，区分「取证」（采数据进结果文件）与「断言」（判 PASS/FAIL）；写业务判定时优先用登记表，别再手写散落的 if-throw。
+- **多版本矩阵（v0.10.0）**：`versionMatrix("v") { version("1.8.8"); version("1.20.1") }` 自动展开 backend+scenario，跑 `e2eMatrixV` / `e2eMatrixVSmokeOnly` 串行聚合。
+- **长场景等待上限（v0.18.0，FR-32）**：`resultTimeoutSeconds`（默认 600）按场景放宽等桩写结果的上限。
+- **serve 控制台（v0.13.0/0.14.0）**：`serve<Key>` 挂住后可直接在当前终端敲服务端控制台命令（直连→后端、经代理/集群→代理）；Windows 另有 ConPTY 附加控制台（FR-25，`serve<Key>Attach`）。
+- **残留进程收尾（v0.18.0，FR-34）**：`output-run.state` 记录输出所有权，构建被拒接手时按提示跑 `stopE2eProcesses`（核对进程台账后收掉旧构建的后端/代理/bot/钩子）。

@@ -1,0 +1,11 @@
+{
+  "name": "mc-testkit",
+  "version": "0.18.0",
+  "description": "Minecraft 插件（Bukkit/Paper/Folia/Spigot 后端，Velocity/Waterfall/BungeeCord 代理）E2E/serve 测试对接技能：mcTestkit{} DSL 拓扑声明、模板脚手架、mineflayer bot 驱动真实起服验收（冒烟/经代理/集群/压测/多版本矩阵），含 serve 持久手测。对齐 mc-testkit v0.18.0。",
+  "author": { "name": "WCPE", "url": "https://github.com/wcpe" },
+  "homepage": "https://github.com/wcpe/mc-testkit-skill",
+  "repository": "https://github.com/wcpe/mc-testkit-skill",
+  "license": "MIT",
+  "keywords": ["minecraft", "bukkit", "paper", "folia", "spigot", "e2e", "integration-test", "gradle", "mc-testkit", "mineflayer", "gametest"],
+  "mcpServers": "./.mcp.json"
+}

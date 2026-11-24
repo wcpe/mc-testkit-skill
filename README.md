@@ -1,133 +1,61 @@
-# mc-testkit — Claude Code / Codex 插件与单独 skill
+# mc-testkit-skill
 
-这个仓库把 [wcpe/mc-testkit](https://github.com/wcpe/mc-testkit) 的接入流程封装成 **Claude Code 插件**、**Codex 插件**，以及一份**可单独安装的通用 skill**（任意支持该 skill 布局的 AI 助手平台均可用），帮助 Minecraft Bukkit/Paper/Folia 插件项目接入真实服务端 E2E、mineflayer 机器人场景、跨服集群、压测和 serve 持久手测。内置模板对齐 mc-testkit **v0.6.0**（FR-20 节点运行时注入 / FR-21 多版本拉起 / 26.x 新版号）。
+[wcpe/mc-testkit](https://github.com/wcpe/mc-testkit) 的**使用技能**（AI 编码助手插件）：帮助手把 mc-testkit 的 E2E / serve 编排接进 Minecraft 插件项目（Bukkit / Paper / Folia / Spigot 后端，Velocity / Waterfall / BungeeCord 代理），并按纪律写场景、跑任务、读结果、排障。
 
-> 本仓库是 AI 助手插件本体，不是 mc-testkit Gradle 插件源码，也不是被测插件。各入口共享同一套 skill、reference、MCP 和模板来源约束，加载方式不同。
+上游 mc-testkit 本身是 Gradle 编排插件 `top.wcpe.mc-testkit`：负责下载并起真实后端/代理、驱动 mineflayer 机器人、读结果文件判 PASS/FAIL。本仓是它的「怎么用」知识包——技能正文 + 冻结契约护栏 + 模板快照 + 只读 MCP。当前对齐 **mc-testkit v0.18.0**。
 
-## 插件入口
+## 能力清单
 
-| 平台 | 入口 | 主要能力 |
-|---|---|---|
-| Claude Code | `.claude-plugin/plugin.json` | skill、斜杠命令、hook、MCP |
-| Codex | `.codex-plugin/plugin.json` | skill、MCP、展示信息、内置模板资产 |
-| 单独 skill | `skills/mc-testkit/` | 通用 skill（SKILL.md + references + scripts + assets），可装到任意支持该布局的 AI 助手 |
+- **接入向导**：maven 网络插件接线（`pluginManagement` 仓库 + `id("top.wcpe.mc-testkit")`）、模板来源确认（内置快照 vs GitHub 实时拉取，必须先问用户）、桩/bot 接线、自测模式（不声明 `pluginUnderTest` 时自动取本模块 `jar` 产物）
+- **场景编写**：DSL/桩/bot 三处同 id 登记；冒烟 / bot 驱动 / 集群 `/server` 切服 / 压测钉服 / 单场景多 bot（具名异质 + `count` 同质）/ bot OP 提权 / console `E2E_CMD` 通道与 `execCommand` / 服务端断言登记表 / 生命周期钩子（before/ready/after）
+- **DSL 速查**：六个顶层块（`backend`/`proxy`/`scenario`/`dependencies`/`serve`/`versionMatrix`）、`mavenPlugin`/`mavenServer` Maven 坐标制品源、`pluginUnderTest(from=)`/`plugin(from=)` 产物来源、`resultTimeoutSeconds`、`runDirectory` 持久运行目录、spigot 平台、MC 1.7.10–1.21.1 与 26.x 新版号
+- **serve 持久手测**：起真实服务端挂住供真人连入；控制台 stdin 命令（v0.13+）与 Windows ConPTY 附加控制台；人机混场自驱 bot
+- **排障**：假绿（无条件 PASS 占位）、三处 id 不一致、冻结契约名误改、`output-run.state` 接手被拒与 `stopE2eProcesses`、bot 输出预算超限、Maven 坐标解析失败、私有 npm 源 404/401
+- **冻结契约护栏 hook**：PostToolUse 拦截 `includeBuild(".../mc-testkit")`、编辑桩/bot 涉及冻结契约名时提醒只许用不许改
 
-## Claude Code 能力
+## 安装
 
-| 组件 | 路径 | 作用 |
-|---|---|---|
-| 技能 Skill | `skills/mc-testkit/` | 中枢知识：心智模型、三条铁律、阶段路由、DSL/任务/env 契约、写场景配方、排障表 |
-| 斜杠命令 Commands | `commands/` | `/mc-testkit-init`、`/mc-testkit-serve`、`/mc-testkit-scenario <id>` |
-| 护栏 Hook | `hooks/` | 拦截 `includeBuild("../mc-testkit")`，提醒冻结契约名不能改 |
-| MCP Server | `.mcp.json` + `mcp/mc-testkit-mcp.mjs` | 只读工具：读结果文件、列 Gradle 生成任务 |
+### Claude Code 插件
 
-Claude Code 侧适合需要 slash command 和 hook 护栏的团队工作流；它仍然要求复制 `template/` 前先确认使用内置快照还是 GitHub 实时拉取。
-
-## Codex 能力
-
-| 能力 | 路径 | 作用 |
-|---|---|---|
-| 插件 manifest | `.codex-plugin/plugin.json` | 声明 Codex 插件元数据、技能、MCP、展示信息 |
-| 技能 | `skills/mc-testkit/` | 触发 mc-testkit 接入、写场景、跑任务、排障流程 |
-| 内置模板资产 | `skills/mc-testkit/assets/mc-testkit-template-v0.6.0.zip` | 离线、可复现复制 `template/` |
-| 模板脚本 | `skills/mc-testkit/scripts/resolve-template.mjs` | 在内置模板和 GitHub 实时模板之间执行用户已确认的选择 |
-| MCP server | `.mcp.json` + `mcp/mc-testkit-mcp.mjs` | 只读工具：读结果文件、列 Gradle 生成任务 |
-
-Codex 侧适合通过自然语言触发 skill、通过 MCP 读取任务和结果文件。当前 Codex manifest 不声明 `commands/` 和 `hooks/`；这些目录是 Claude Code 插件能力，不是废弃目录。
-
-## 模板来源必须确认
-
-从零接入或重新同步 `template/` 前，技能必须先问用户选择：
-
-- **内置模板快照**：来源为 `wcpe/mc-testkit` 版本 `0.6.0`、提交 `43fae4cb420a1201510cc00bf3033b9160974175`。离线、可复现，但可能落后上游。
-- **GitHub 实时拉取**：从 `https://github.com/wcpe/mc-testkit` 指定 tag/branch/commit 取 `template/`。能对齐指定版本，但依赖网络和上游可用性。
-
-用户未选择时不得复制模板；目标目录已存在时也必须再次确认覆盖。
-
-> 说明：v0.4.2 → v0.6.0 之间 `template/` 目录零差异（FR-20 节点运行时注入、FR-21 多版本拉起全在编排插件层），内置快照与上游 v0.6.0 `template/` 内容一致。
-
-## Claude Code 安装与使用
-
-本插件可经 [wcpe/plugin-marketplaces](https://github.com/wcpe/plugin-marketplaces) 组织市场分发：
-
-```text
-/plugin marketplace add wcpe/plugin-marketplaces
-/plugin install mc-testkit@wcpe
-```
-
-团队自动分发可在消费方仓库的 `.claude/settings.json` 声明，字段名以当前 Claude Code 插件文档为准。
-
-常用入口：
-
-- `/mc-testkit-init 1.20.1`：从零接入并跑通最小 smoke。
-- `/mc-testkit-serve dev`：配置 serve 持久手测。
-- `/mc-testkit-scenario inv-sync`：三处一致登记自动化 E2E 场景。
-- 自然语言排障：例如“e2e 跑不过 / bot 连不上 / serve 几秒自停”。
-
-## Codex 安装与使用
-
-Codex 插件同样收录在 [wcpe/plugin-marketplaces](https://github.com/wcpe/plugin-marketplaces)。添加该市场后，在 Codex 插件界面安装 `mc-testkit-skill@wcpe`。
-
-## 单独 skill 安装
-
-`skills/mc-testkit/` 是标准 skill 目录结构（SKILL.md + references/ + scripts/ + assets/），**不依赖插件市场或平台专属封装**，可安装到任何支持该 skill 布局的 AI 助手。三种装法任选：
-
-**① 用户级安装（推荐，跨所有项目可用）**
-
-把整个目录复制到你的 AI 助手的用户级 skills 目录（位置因平台而异，以你所使用 AI 助手文档约定的目录为准，`<skills-dir>` 指该目录）：
+仓库根带 `.claude-plugin/plugin.json`；`skills/`、`commands/`、`hooks/` 沿用 CC 插件布局：
 
 ```bash
-# Windows
-xcopy /E /I /Y "skills\mc-testkit" "%USERPROFILE%\<skills-dir>\mc-testkit"
-# macOS / Linux
-cp -r skills/mc-testkit "~/<skills-dir>/mc-testkit"
+claude plugin add /path/to/mc-testkit-skill   # 或按 marketplace 插件装入
 ```
 
-装完重启会话即可用。自然语言触发示例：「用 mc-testkit 给这个 Paper 插件接入最小 E2E smoke」「加个跨服一致性场景 inv-sync」。
+斜杠命令：`/mc-testkit-init`（从零接入跑通 smoke）、`/mc-testkit-scenario`（三处登记新场景）、`/mc-testkit-serve`（持久手测）。
 
-**② 项目级安装（随仓库共享给协作者）**
+### Codex 插件
 
-把 `skills/mc-testkit/` 整个目录放进消费方仓库的项目级 skills 目录（同样以你所使用 AI 助手文档约定的目录为准），协作者 clone 后自动可用。
+`.codex-plugin/plugin.json`（`skills` → `./skills/`、`mcpServers` → `./.mcp.json`），按 Codex 插件目录装入。
 
-**③ 打包 zip 安装**
+### Devin 插件
 
-仓库根目录的 `mc-testkit-skill.zip`（skill 独立包，顶层即 `mc-testkit/`，含 SKILL.md / references / scripts / assets / tests）可直接经支持 zip 安装的 AI 助手「安装技能」入口安装；重新打包命令：
+`.devin-plugin/plugin.json` manifest + `skills/mc-testkit/SKILL.md` + 根 `.mcp.json`（mc-testkit MCP：读结果文件 / 列生成任务，Node 直跑）。在 Devin 侧用仓库 URL 安装即可；护栏 hook 用 Claude 格式（`hooks/hooks.json`）。
 
-```bash
-cd skills && python -m zipfile -c ../mc-testkit-skill.zip mc-testkit
+### 任何只认技能目录的 agent
+
+把 `skills/mc-testkit/` 整个目录拷进 agent 的技能目录即可。
+
+## 目录结构
+
+```
+.claude-plugin/plugin.json   # Claude Code manifest
+.codex-plugin/plugin.json    # Codex manifest
+.devin-plugin/plugin.json    # Devin manifest
+.mcp.json                    # mc-testkit MCP server（node mcp/mc-testkit-mcp.mjs）
+hooks/                       # 冻结契约护栏（PostToolUse，Claude 格式 hooks.json）
+commands/                    # 3 个斜杠命令
+mcp/                         # 只读 MCP server 实现
+skills/mc-testkit/
+  SKILL.md                   # 触发/路由/铁律/完成判据
+  assets/                    # 内置模板快照（v0.18.0 zip）
+  references/                # scaffolding-and-integration / authoring-scenarios / dsl-tasks-and-env / troubleshooting
+  scripts/resolve-template.mjs  # 内置/GitHub 模板统一复制（0.4.1–0.18.0 版本↔提交映射）
+  tests/                     # resolve-template 自测（node --test）
 ```
 
-> 单独 skill 只含技能本体；Claude Code 的斜杠命令（`commands/`）与护栏 hook（`hooks/`）是插件级能力，单独安装 skill 时不会带上——需要它们就走上面的 Claude Code 插件市场路径。
+## 边界
 
-## 使用示例
-
-- “用 mc-testkit 给这个 Paper 插件接入最小 E2E smoke。”
-- “用 mc-testkit 添加跨服一致性场景 `inv-sync`。”
-- “用 mc-testkit 配一个 serve 持久手测环境，让真人客户端能连进去。”
-- “用 mc-testkit 排查 `build/mc-testkit/results/buy-success.properties` 失败原因。”
-- “用 mc-testkit 加一个 1.7.10 老版本后端跑 smoke（按版本段设 `MC_TESTKIT_JAVA_HOME_1_7`）。”
-
-## MCP 工具
-
-- `mc_testkit_read_result`：读取 `build/mc-testkit/results/<scenario>.properties`。
-- `mc_testkit_list_tasks`：运行 `./gradlew :tasks --all --console=plain` 并筛出 mc-testkit 任务。
-
-## 验证
-
-```powershell
-python <plugin-creator-skill>/scripts/validate_plugin.py .
-$env:PYTHONUTF8='1'; python <skill-creator-skill>/scripts/quick_validate.py ./skills/mc-testkit
-node <plugin-eval-plugin>/scripts/plugin-eval.js analyze . --format markdown
-```
-
-## Privacy
-
-本插件只读取用户当前工作区和用户明确选择的 mc-testkit 模板来源；MCP 工具只读本地 Gradle 任务与结果文件。选择 GitHub 实时拉取模板时，会访问 `https://github.com/wcpe/mc-testkit`。插件本身不收集、存储或上传个人数据。
-
-## Terms
-
-本插件按 MIT 许可提供。使用者需要自行确认被测项目、Minecraft 服务端、mineflayer 依赖和 mc-testkit 上游许可与运行环境要求，并对在自己项目中生成或修改的测试代码负责。
-
-## 许可
-
-[MIT](LICENSE) © 2026 WCPE
+- 本仓不实现 mc-testkit 本体——编排插件、模板、共享构件（`harness-core` / `@wcpe/mc-testkit-bot`）都在上游 [wcpe/mc-testkit](https://github.com/wcpe/mc-testkit)，权威接口契约见其 `docs/API.md`。
+- 只走 maven 网络插件消费（`maven.wcpe.top`），**禁用 `includeBuild`** 接 mc-testkit 源码。

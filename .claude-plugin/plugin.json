@@ -1,9 +1,22 @@
 {
   "name": "mc-testkit",
-  "version": "0.6.0",
-  "description": "给 Minecraft(Bukkit/Paper/Folia) 插件项目对接 mc-testkit：mcTestkit{} DSL 声明真实代理+后端拓扑、template 脚手架、真实机器人驱动 E2E（冒烟/经代理/集群/压测），以及 serve 持久手测（起服挂住供真人客户端连入）。捆绑技能 + 斜杠命令(/mc-testkit-init|serve|scenario) + 冻结契约护栏 hook + 只读 MCP server。只走 maven 网络插件、禁用 includeBuild；复制 template 前必须确认使用内置快照还是从 wcpe/mc-testkit 实时拉取。内置模板对齐 mc-testkit v0.6.0（FR-20 节点运行时注入 / FR-21 多版本拉起）。",
-  "author": { "name": "WCPE", "url": "https://github.com/wcpe" },
+  "version": "0.18.0",
+  "description": "给 Minecraft(Bukkit/Paper/Folia/Spigot) 插件项目对接 mc-testkit：mcTestkit{} DSL 声明真实代理+后端拓扑（含多版本矩阵/Maven 坐标制品源/持久运行目录）、template 脚手架、真实机器人驱动 E2E（冒烟/经代理/集群/压测/多 bot/生命周期钩子），以及 serve 持久手测（起服挂住供真人客户端连入、控制台 stdin 命令）。捆绑技能 + 斜杠命令(/mc-testkit-init|serve|scenario) + 冻结契约护栏 hook + 只读 MCP server。只走 maven 网络插件、禁用 includeBuild；复制 template 前必须确认使用内置快照还是从 wcpe/mc-testkit 实时拉取。内置模板对齐 mc-testkit v0.18.0（FR-34 输出预算与进程台账 / FR-33 持久运行目录 / FR-32 场景结果等待上限）。",
+  "author": {
+    "name": "WCPE",
+    "url": "https://github.com/wcpe"
+  },
   "homepage": "https://github.com/wcpe/mc-testkit",
   "license": "MIT",
-  "keywords": ["minecraft", "bukkit", "paper", "folia", "e2e", "integration-test", "gradle", "mc-testkit", "mineflayer"]
+  "keywords": [
+    "minecraft",
+    "bukkit",
+    "paper",
+    "folia",
+    "e2e",
+    "integration-test",
+    "gradle",
+    "mc-testkit",
+    "mineflayer"
+  ]
 }
