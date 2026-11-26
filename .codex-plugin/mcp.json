@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mc-testkit": {
+      "command": "node",
+      "args": ["./mcp/mc-testkit-mcp.mjs"],
+      "cwd": ".",
+      "tool_timeout_sec": 300
+    }
+  }
+}

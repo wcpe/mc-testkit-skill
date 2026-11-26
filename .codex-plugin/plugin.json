@@ -23,7 +23,7 @@
     "gametest"
   ],
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
+  "mcpServers": "./.codex-plugin/mcp.json",
   "interface": {
     "displayName": "mc-testkit",
     "shortDescription": "Minecraft plugin E2E testing workflows",
